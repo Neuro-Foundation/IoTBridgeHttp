@@ -693,6 +693,8 @@ internal class Program
 			await SetupConcentratorServer();
 			SetupChatServer();
 
+			Log.Informational("Initialization complete. Press Ctrl+C to exit.");
+
 			bool Running = true;
 
 			Console.CancelKeyPress += (_, e) =>
@@ -1169,7 +1171,8 @@ internal class Program
 	{
 		SafeDispose(ref concentratorServer);
 
-		concentratorServer = await ConcentratorServer.Create(xmppClient, registryClient, provisioningClient, new MeteringTopology());
+		concentratorServer = await ConcentratorServer.Create(xmppClient, registryClient, 
+			provisioningClient, new MeteringTopology());
 	}
 
 	#endregion
