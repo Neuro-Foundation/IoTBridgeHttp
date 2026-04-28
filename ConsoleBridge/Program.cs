@@ -19,7 +19,6 @@ using Waher.Networking;
 using Waher.Networking.HTTP;
 using Waher.Networking.XMPP;
 using Waher.Networking.XMPP.BitsOfBinary;
-using Waher.Networking.XMPP.Chat;
 using Waher.Networking.XMPP.Concentrator;
 using Waher.Networking.XMPP.Provisioning;
 using Waher.Networking.XMPP.ServiceDiscovery;
@@ -62,7 +61,7 @@ internal class Program
 	private static ThingRegistryClient? registryClient = null;
 	private static ProvisioningClient? provisioningClient = null;
 	private static BobClient? bobClient = null;
-	private static ChatServer? chatServer = null;
+	private static Waher.Networking.XMPP.Chat.ChatServer? chatServer = null;
 	private static X509Certificate? certificate = null;
 	private static LoginAuditor? loginAuditor = null;
 	private static IPersistentDictionary? nonceValues = null;
@@ -391,8 +390,8 @@ internal class Program
 
 					await RuntimeSettings.SetAsync("HttpsPort", HttpsPort);
 				}
-			
-				httpServer = new([(int)HttpPort], [(int)HttpsPort], certificate, 
+
+				httpServer = new([(int)HttpPort], [(int)HttpsPort], certificate,
 					true, ClientCertificates.Optional, false, [], true);
 
 				loginAuditor.Domain = BinaryTcpClient.GetDomainFromSubject(certificate.Subject);
@@ -414,7 +413,7 @@ internal class Program
 
 			httpServer.Register("/Login", async (req, resp) =>
 			{
-				string? Message = null;			SafeDispose(ref nonceValues);
+				string? Message = null; SafeDispose(ref nonceValues);
 				string? Jwt = null;
 				bool Ok = false;
 
@@ -490,6 +489,99 @@ internal class Program
 
 			await Types.StartAllModules(60000);     // HttpModule requires the Web Server to be active
 			await HttpModule.CheckLocalWebServerNode();
+
+			#endregion
+
+			#region Users
+
+			int UserCount = (int)await EnvironmentSettings.GetAsync("USER_COUNT", "UserCount", 0);
+			int UserNr;
+
+			for (UserNr = 1; UserNr <= UserCount; UserNr++)
+			{
+				string UserName = await EnvironmentSettings.GetAsync("USER_" + UserNr.ToString() + "_NAME", "User" + UserNr.ToString() + "_Name", string.Empty);
+				string Password = await EnvironmentSettings.GetAsync("USER_" + UserNr.ToString() + "_PASSWORD", "User" + UserNr.ToString() + "_PasswordHash", string.Empty);
+				string Privilege = await EnvironmentSettings.GetAsync("USER_" + UserNr.ToString() + "_PRIVILEGE", "User" + UserNr.ToString() + "_Privilege", "Admin.SensorData.Post");
+
+				if (!string.IsNullOrEmpty(UserName) &&
+					!string.IsNullOrEmpty(Password) &&
+					!string.IsNullOrEmpty(Privilege))
+				{
+					Role Role = new()
+					{
+						Id = "User" + UserNr.ToString() + "Role",
+						Privileges = [new PrivilegePattern(Privilege, true)]
+					};
+
+					await Database.Insert(Role);
+
+					User User = new()
+					{
+						UserName = UserName,
+						PasswordHash = Convert.ToBase64String(Users.ComputeHash(UserName, Password)),
+						RoleIds = [Role.Id]
+					};
+
+					await Database.Insert(User);
+
+					Log.Informational("User added.", UserName);
+				}
+			}
+
+			if (await Database.FindFirstIgnoreRest<User>() is null)
+			{
+				UserNr = 1;
+
+				do
+				{
+					string UserName = InputString("User name " + UserNr.ToString(), "Must not be empty.", string.Empty);
+					if (!string.IsNullOrEmpty(UserName))
+					{
+						string Password = InputString("Password " + UserNr.ToString(), "Must not be empty.", string.Empty);
+
+						if (!string.IsNullOrEmpty(Password))
+						{
+							string Privilege = InputString("Privileges " + UserNr.ToString(), "Regular expression", "Admin.SensorData.Post");
+
+							if (!string.IsNullOrEmpty(Privilege))
+							{
+								Role Role = new()
+								{
+									Id = "User" + UserNr.ToString() + "Role",
+									Privileges = [new PrivilegePattern(Privilege, true)]
+								};
+
+								await Database.Insert(Role);
+
+								User User = new()
+								{
+									UserName = UserName,
+									PasswordHash = Convert.ToBase64String(Users.ComputeHash(UserName, Password)),
+									RoleIds = [Role.Id]
+								};
+
+								await Database.Insert(User);
+
+								Log.Informational("User added.", UserName);
+								UserNr++;
+							}
+							else
+								Log.Warning("Discarding user with empty privilege.");
+						}
+						else
+							Log.Warning("Discarding user with empty password.");
+					}
+					else
+						Log.Warning("Discarding user with empty user name.");
+
+					if (UserNr > 1)
+					{
+						if (!InputString("Do you want to add another user?", true))
+							UserNr = 0;
+					}
+				}
+				while (UserNr > 0);
+			}
 
 			#endregion
 
@@ -1089,7 +1181,7 @@ internal class Program
 		SafeDispose(ref chatServer);
 
 		bobClient ??= new BobClient(xmppClient, Path.Combine(Path.GetTempPath(), "BitsOfBinary"));
-		chatServer = new ChatServer(xmppClient, bobClient, concentratorServer);
+		chatServer = new Waher.Networking.XMPP.Chat.ChatServer(xmppClient, bobClient, concentratorServer);
 	}
 
 	#endregion

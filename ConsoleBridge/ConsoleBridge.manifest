@@ -282,6 +282,10 @@
 	<Variable name="X509_PASSWORD" default="" label="Password for X.509 certificate."/>
 	<Variable name="HTTP_PORT" default="80" label="Port number to use for unencrypted HTTP."/>
 	<Variable name="HTTPS_PORT" default="443" label="Port number to use for encrypted HTTPS."/>
+	<Variable name="USER_COUNT" default="0" label="Number of users to create. (Default is 0, which will trigger manual input of users.)"/>
+	<Variable name="USER_N_NAME" default="" label="User name for user N. (where N is a number between 1 and USERS_COUNT)"/>
+	<Variable name="USER_N_PASSWORD" default="" label="User password for user N. (where N is a number between 1 and USERS_COUNT)"/>
+	<Variable name="USER_N_PRIVILEGE" default="Admin.SensorData.Post" label="Regular expression specifying the privilege or privileges held by the user."/>
 	<Command executable="chmod">
 		<Argument>+x</Argument>
 		<Argument>/opt/IoTGateway/ConsoleBridge</Argument>
