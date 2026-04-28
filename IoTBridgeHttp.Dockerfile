@@ -75,6 +75,42 @@ ARG REGISTRY_NAME
 ENV REGISTRY_NAME=""
 LABEL env.REGISTRY_NAME="Name to register in Thing Registry."
 
+ARG JWT_SECRET
+ENV JWT_SECRET=""
+LABEL env.JWT_SECRET="BASE64-encoded binary secret used to create JWT tokens. If not provided, a random secret will be created."
+
+ARG X509_FILENAME
+ENV X509_FILENAME=""
+LABEL env.X509_FILENAME="Filename to X.509 certificate to use."
+
+ARG X509_PASSWORD
+ENV X509_PASSWORD=""
+LABEL env.X509_PASSWORD="Password for X.509 certificate."
+
+ARG HTTP_PORT
+ENV HTTP_PORT="80"
+LABEL env.HTTP_PORT="Port number to use for unencrypted HTTP."
+
+ARG HTTPS_PORT
+ENV HTTPS_PORT="443"
+LABEL env.HTTPS_PORT="Port number to use for encrypted HTTPS."
+
+ARG USER_COUNT
+ENV USER_COUNT="0"
+LABEL env.USER_COUNT="Number of users to create. (Default is 0, which will trigger manual input of users.)"
+
+ARG USER_N_NAME
+ENV USER_N_NAME=""
+LABEL env.USER_N_NAME="User name for user N. (where N is a number between 1 and USERS_COUNT)"
+
+ARG USER_N_PASSWORD
+ENV USER_N_PASSWORD=""
+LABEL env.USER_N_PASSWORD="User password for user N. (where N is a number between 1 and USERS_COUNT)"
+
+ARG USER_N_PRIVILEGE
+ENV USER_N_PRIVILEGE="Admin.SensorData.Post"
+LABEL env.USER_N_PRIVILEGE="Regular expression specifying the privilege or privileges held by the user."
+
 COPY [ \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/ConsoleBridge.manifest", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/ConsoleBridge", \
@@ -333,6 +369,18 @@ COPY [ \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Things.Xmpp.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/WindowsBase.dll", \
 	"/opt/IoTGateway/"]
+
+COPY [ \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/favicon.ico", \
+	"/var/lib/IoT Gateway/Root/"]
+
+COPY [ \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/favicon.ico", \
+	"/opt/IoTGateway/Root/"]
+
+RUN ["cp", "-ru", "/var/lib/IoT Gateway/.", "/var/lib/IoT Gateway"]
+
+RUN ["rm", "-rf", "/var/lib/IoT Gateway/"]
 
 RUN ["chmod", "+x", "/opt/IoTGateway/ConsoleBridge"]
 
