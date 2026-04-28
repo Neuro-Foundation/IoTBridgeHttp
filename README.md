@@ -45,6 +45,8 @@ to input the value on the console.
 | `JWT_SECRET`              | String  | Secret used to create JWT tokens. If not provided, a random secret will be created.                                   |
 | `X509_FILENAME`           | String  | File name to X.509 certificate to use. If not provided, HTTPS will not be enabled.                                    |
 | `X509_PASSWORD`           | String  | Password to X.509 certificate.                                                                                        |
+| `HTTP_PORT`               | Integer | Port number to use for unencrypted HTTP. (default is `80`)                                                            |
+| `HTTPS_PORT`              | Integer | Port number to use for encrypted HTTPS. (default is `443`)                                                            |
 
 ### Running in a Docker container
 

@@ -280,6 +280,8 @@
 	<Variable name="JWT_SECRET" default="" label="BASE64-encoded binary secret used to create JWT tokens. If not provided, a random secret will be created."/>
 	<Variable name="X509_FILENAME" default="" label="Filename to X.509 certificate to use."/>
 	<Variable name="X509_PASSWORD" default="" label="Password for X.509 certificate."/>
+	<Variable name="HTTP_PORT" default="80" label="Port number to use for unencrypted HTTP."/>
+	<Variable name="HTTPS_PORT" default="443" label="Port number to use for encrypted HTTPS."/>
 	<Command executable="chmod">
 		<Argument>+x</Argument>
 		<Argument>/opt/IoTGateway/ConsoleBridge</Argument>

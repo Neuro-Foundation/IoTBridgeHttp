@@ -61,7 +61,6 @@ internal class Program
 	private static BobClient? bobClient = null;
 	private static ChatServer? chatServer = null;
 	private static X509Certificate? certificate = null;
-	private static string? certificatePassword = null;
 
 	private static async Task Main()
 	{
@@ -295,7 +294,7 @@ internal class Program
 
 				await RuntimeSettings.SetAsync("JwtSecret", JwtFactorySecret);
 			}
-				
+
 			Bin = Encoding.UTF8.GetBytes(JwtFactorySecret);
 
 			jwtFactory = JwtFactory.CreateHmacSha256(Bin);
@@ -334,7 +333,7 @@ internal class Program
 				if (!string.IsNullOrEmpty(Base64))
 				{
 					Bin = Convert.FromBase64String(Base64);
-					CertificatePassword= await RuntimeSettings.GetAsync("X509Password", CertificatePassword);
+					CertificatePassword = await RuntimeSettings.GetAsync("X509Password", CertificatePassword);
 
 					certificate = new X509Certificate2(Bin, CertificatePassword);
 				}
@@ -352,7 +351,31 @@ internal class Program
 			string RootFolder = Path.Combine(Environment.CurrentDirectory, "Root");
 			Types.SetModuleParameter("Root", RootFolder);
 
-			httpServer = new();
+			long HttpPort = await EnvironmentSettings.GetAsync("HTTP_PORT", "HttpPort", -1);
+			if (HttpPort <= 0 || HttpPort > ushort.MaxValue)
+			{
+				while (HttpPort <= 0 || HttpPort > ushort.MaxValue)
+					HttpPort = InputString("HTTP Port", HttpServer.DefaultHttpPort);
+
+				await RuntimeSettings.SetAsync("HttpPort", HttpPort);
+			}
+
+			if (certificate is null)
+				httpServer = new((int)HttpPort);
+			else
+			{
+				long HttpsPort = await EnvironmentSettings.GetAsync("HTTPS_PORT", "HttpsPort", -1);
+				if (HttpsPort <= 0 || HttpsPort > ushort.MaxValue || HttpsPort == HttpPort)
+				{
+					while (HttpsPort <= 0 || HttpsPort > ushort.MaxValue || HttpsPort == HttpPort)
+						HttpsPort = await EnvironmentSettings.GetAsync("HTTPS_PORT", "HttpsPort", -1);
+
+					await RuntimeSettings.SetAsync("HttpsPort", HttpsPort);
+				}
+			
+				httpServer = new((int)HttpPort, (int)HttpsPort, certificate);
+			}
+
 			Types.SetModuleParameter("HTTP", httpServer);
 
 			scheduler = new Scheduler();
@@ -377,7 +400,7 @@ internal class Program
 			logJid = await RuntimeSettings.GetAsync("EventServer.JID", string.Empty);
 			ownerJid = await RuntimeSettings.GetAsync("ThingRegistry.Owner", string.Empty);
 
-			if (string.IsNullOrEmpty(thingRegistryJid) || 
+			if (string.IsNullOrEmpty(thingRegistryJid) ||
 				string.IsNullOrEmpty(provisioningJid) ||
 				string.IsNullOrEmpty(logJid))
 			{
@@ -952,7 +975,7 @@ internal class Program
 	private static async Task SetupConcentratorServer()
 	{
 		SafeDispose(ref concentratorServer);
-		
+
 		concentratorServer = await ConcentratorServer.Create(xmppClient, registryClient, provisioningClient, new MeteringTopology());
 	}
 
