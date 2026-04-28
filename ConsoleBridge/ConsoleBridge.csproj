@@ -52,7 +52,7 @@
     <PackageReference Include="Waher.Script" Version="2.13.9" />
     <PackageReference Include="Waher.Security" Version="1.2.0" />
     <PackageReference Include="Waher.Things" Version="3.3.0" />
-    <PackageReference Include="Waher.Things.Http" Version="1.0.0" />
+    <PackageReference Include="Waher.Things.Http" Version="1.0.1" />
     <PackageReference Include="Waher.Things.Ip" Version="2.2.3" />
     <PackageReference Include="Waher.Things.Metering" Version="2.2.1" />
     <PackageReference Include="Waher.Things.Script" Version="2.2.3" />
