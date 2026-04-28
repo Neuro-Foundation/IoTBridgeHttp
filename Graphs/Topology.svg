@@ -1,0 +1,416 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1004pt" height="1144pt" viewBox="0.00 0.00 1004.00 1144.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 1140)">
+<title>G</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-1140 999.74,-1140 999.74,4 -4,4"/>
+<g id="clust1" class="cluster">
+<title>cluster_0</title>
+<polygon fill="lightgrey" stroke="lightgrey" points="8,-200 8,-454 300.79,-454 300.79,-200 8,-200"/>
+<text xml:space="preserve" text-anchor="start" x="100.54" y="-438.4" font-family="Times,serif" font-weight="bold" text-decoration="underline" font-size="14.00">Intra-network</text>
+<text xml:space="preserve" text-anchor="start" x="186.08" y="-438.4" font-family="Times,serif" font-size="14.00">, or </text>
+<text xml:space="preserve" text-anchor="start" x="83.63" y="-424.4" font-family="Times,serif" font-weight="bold" text-decoration="underline" font-size="14.00">Enterprise Network</text>
+<text xml:space="preserve" text-anchor="start" x="202.99" y="-424.4" font-family="Times,serif" font-size="14.00">, or </text>
+<text xml:space="preserve" text-anchor="start" x="104.43" y="-410.4" font-family="Times,serif" font-weight="bold" text-decoration="underline" font-size="14.00">Internet Domain</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_2</title>
+<polygon fill="lightgrey" stroke="lightgrey" points="365.75,-8 365.75,-1128 987.74,-1128 987.74,-8 365.75,-8"/>
+<text xml:space="preserve" text-anchor="start" x="634.37" y="-1112.4" font-family="Times,serif" font-weight="bold" text-decoration="underline" font-size="14.00">Inter-network</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_3</title>
+<polygon fill="#dcdcdc" stroke="#dcdcdc" points="395.75,-38 395.75,-429 957.74,-429 957.74,-38 395.75,-38"/>
+<text xml:space="preserve" text-anchor="start" x="631.06" y="-413.4" font-family="Times,serif" font-weight="bold" text-decoration="underline" font-size="14.00">XMPP Domain</text>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_4</title>
+<polygon fill="#dcdcdc" stroke="#dcdcdc" points="579.67,-459 579.67,-718 907.76,-718 907.76,-459 579.67,-459"/>
+<text xml:space="preserve" text-anchor="start" x="687.92" y="-702.4" font-family="Times,serif" font-weight="bold" text-decoration="underline" font-size="14.00">Federated Domain</text>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_5</title>
+<polygon fill="#dcdcdc" stroke="#dcdcdc" points="578.06,-814 578.06,-1073 907.76,-1073 907.76,-814 578.06,-814"/>
+<text xml:space="preserve" text-anchor="start" x="687.12" y="-1057.4" font-family="Times,serif" font-weight="bold" text-decoration="underline" font-size="14.00">Federated Domain</text>
+</g>
+<!-- Bridge -->
+<g id="node1" class="node">
+<title>Bridge</title>
+<ellipse fill="white" stroke="black" cx="232.53" cy="-302" rx="38.26" ry="29.42"/>
+<text xml:space="preserve" text-anchor="middle" x="232.53" y="-306.2" font-family="Times,serif" font-size="14.00">HTTP</text>
+<text xml:space="preserve" text-anchor="middle" x="232.53" y="-289.4" font-family="Times,serif" font-size="14.00">Bridge</text>
+</g>
+<!-- XMPP -->
+<g id="node2" class="node">
+<title>XMPP</title>
+<ellipse fill="white" stroke="black" cx="464.56" cy="-302" rx="38.8" ry="29.42"/>
+<text xml:space="preserve" text-anchor="middle" x="464.56" y="-306.2" font-family="Times,serif" font-size="14.00">XMPP</text>
+<text xml:space="preserve" text-anchor="middle" x="464.56" y="-289.4" font-family="Times,serif" font-size="14.00">Broker</text>
+</g>
+<!-- Bridge&#45;&gt;XMPP -->
+<g id="edge4" class="edge">
+<title>Bridge-&gt;XMPP</title>
+<path fill="none" stroke="black" d="M282.51,-302C321.29,-302 375.22,-302 414.12,-302"/>
+<polygon fill="black" stroke="black" points="282.77,-298.5 272.77,-302 282.77,-305.5 282.77,-298.5"/>
+<polygon fill="black" stroke="black" points="413.91,-305.5 423.91,-302 413.91,-298.5 413.91,-305.5"/>
+<text xml:space="preserve" text-anchor="start" x="313.06" y="-346.4" font-family="Times,serif" font-weight="bold" font-size="14.00">XMPP</text>
+<text xml:space="preserve" text-anchor="start" x="309.56" y="-332.4" font-family="Times,serif" font-size="14.00">message</text>
+<text xml:space="preserve" text-anchor="start" x="327.82" y="-318.4" font-family="Times,serif" font-size="14.00">iq</text>
+<text xml:space="preserve" text-anchor="start" x="308.79" y="-304.4" font-family="Times,serif" font-size="14.00">presence</text>
+</g>
+<!-- XD1 -->
+<g id="node6" class="node">
+<title>XD1</title>
+<ellipse fill="white" stroke="black" cx="652.35" cy="-86" rx="38.93" ry="18"/>
+<text xml:space="preserve" text-anchor="start" x="632.13" y="-82.8" font-family="Times,serif" font-size="14.00">Thing</text>
+<text xml:space="preserve" text-anchor="start" x="665.57" y="-82.8" font-family="Times,serif" baseline-shift="sub" font-size="14.00">1</text>
+</g>
+<!-- XMPP&#45;&gt;XD1 -->
+<g id="edge5" class="edge">
+<title>XMPP-&gt;XD1</title>
+<path fill="none" stroke="black" d="M474.07,-261.55C482.23,-229.94 496.99,-186.15 521.36,-154.2 542.6,-126.35 578.51,-108.75 607.2,-98.42"/>
+<polygon fill="black" stroke="black" points="470.7,-260.58 471.72,-271.13 477.5,-262.25 470.7,-260.58"/>
+<polygon fill="black" stroke="black" points="608.03,-101.83 616.37,-95.29 605.78,-95.2 608.03,-101.83"/>
+<text xml:space="preserve" text-anchor="middle" x="543.91" y="-158.4" font-family="Times,serif" font-size="14.00">JID</text>
+</g>
+<!-- XD2 -->
+<g id="node7" class="node">
+<title>XD2</title>
+<text xml:space="preserve" text-anchor="middle" x="652.35" y="-135.8" font-family="Times,serif" font-size="14.00">...</text>
+</g>
+<!-- XMPP&#45;&gt;XD2 -->
+<!-- XD3 -->
+<g id="node8" class="node">
+<title>XD3</title>
+<ellipse fill="white" stroke="black" cx="652.35" cy="-194" rx="42.69" ry="18"/>
+<text xml:space="preserve" text-anchor="start" x="629.41" y="-190.8" font-family="Times,serif" font-size="14.00">Thing</text>
+<text xml:space="preserve" text-anchor="start" x="662.85" y="-190.8" font-family="Times,serif" baseline-shift="sub" font-size="14.00">M</text>
+</g>
+<!-- XMPP&#45;&gt;XD3 -->
+<g id="edge7" class="edge">
+<title>XMPP-&gt;XD3</title>
+<path fill="none" stroke="black" d="M495.4,-269.85C503.39,-262.21 512.34,-254.47 521.36,-248.2 547.1,-230.32 579.65,-216.75 605.75,-207.67"/>
+<polygon fill="black" stroke="black" points="493.17,-267.12 488.52,-276.64 498.09,-272.1 493.17,-267.12"/>
+<polygon fill="black" stroke="black" points="606.7,-211.04 615.06,-204.53 604.47,-204.41 606.7,-211.04"/>
+<text xml:space="preserve" text-anchor="middle" x="543.91" y="-252.4" font-family="Times,serif" font-size="14.00">JID</text>
+</g>
+<!-- XC1 -->
+<g id="node9" class="node">
+<title>XC1</title>
+<ellipse fill="white" stroke="black" cx="652.35" cy="-248" rx="66.28" ry="18"/>
+<text xml:space="preserve" text-anchor="start" x="612.31" y="-244.8" font-family="Times,serif" font-size="14.00">Concentrator</text>
+<text xml:space="preserve" text-anchor="start" x="685.39" y="-244.8" font-family="Times,serif" baseline-shift="sub" font-size="14.00">1</text>
+</g>
+<!-- XMPP&#45;&gt;XC1 -->
+<g id="edge8" class="edge">
+<title>XMPP-&gt;XC1</title>
+<path fill="none" stroke="black" d="M510.15,-284.9C513.92,-283.6 517.7,-282.35 521.36,-281.2 543.41,-274.3 567.89,-267.76 589.61,-262.34"/>
+<polygon fill="black" stroke="black" points="509.26,-281.5 501.02,-288.15 511.61,-288.09 509.26,-281.5"/>
+<polygon fill="black" stroke="black" points="590.35,-265.76 599.22,-259.97 588.67,-258.96 590.35,-265.76"/>
+<text xml:space="preserve" text-anchor="middle" x="543.91" y="-285.4" font-family="Times,serif" font-size="14.00">JID</text>
+</g>
+<!-- XC2 -->
+<g id="node10" class="node">
+<title>XC2</title>
+<text xml:space="preserve" text-anchor="middle" x="652.35" y="-297.8" font-family="Times,serif" font-size="14.00">...</text>
+</g>
+<!-- XMPP&#45;&gt;XC2 -->
+<!-- XC3 -->
+<g id="node11" class="node">
+<title>XC3</title>
+<ellipse fill="white" stroke="black" cx="652.35" cy="-356" rx="67.89" ry="18"/>
+<text xml:space="preserve" text-anchor="start" x="611.14" y="-352.8" font-family="Times,serif" font-size="14.00">Concentrator</text>
+<text xml:space="preserve" text-anchor="start" x="684.22" y="-352.8" font-family="Times,serif" baseline-shift="sub" font-size="14.00">C</text>
+</g>
+<!-- XMPP&#45;&gt;XC3 -->
+<g id="edge10" class="edge">
+<title>XMPP-&gt;XC3</title>
+<path fill="none" stroke="black" d="M512.28,-315.58C537.22,-322.83 568.11,-331.81 594.44,-339.46"/>
+<polygon fill="black" stroke="black" points="513.41,-312.26 502.83,-312.83 511.46,-318.99 513.41,-312.26"/>
+<polygon fill="black" stroke="black" points="593.38,-342.79 603.96,-342.22 595.33,-336.07 593.38,-342.79"/>
+<text xml:space="preserve" text-anchor="middle" x="543.91" y="-334.82" font-family="Times,serif" font-size="14.00">JID</text>
+</g>
+<!-- XB1 -->
+<g id="node18" class="node">
+<title>XB1</title>
+<ellipse fill="white" stroke="black" cx="652.35" cy="-560" rx="42.68" ry="18"/>
+<text xml:space="preserve" text-anchor="start" x="629.41" y="-556.8" font-family="Times,serif" font-size="14.00">Broker</text>
+<text xml:space="preserve" text-anchor="start" x="668.29" y="-556.8" font-family="Times,serif" baseline-shift="sub" font-size="14.00">1</text>
+</g>
+<!-- XMPP&#45;&gt;XB1 -->
+<g id="edge17" class="edge">
+<title>XMPP-&gt;XB1</title>
+<path fill="none" stroke="black" d="M490.65,-336.84C528.24,-389.04 598.35,-486.41 632.16,-533.34"/>
+<polygon fill="black" stroke="black" points="493.62,-334.98 484.93,-328.91 487.94,-339.07 493.62,-334.98"/>
+<polygon fill="black" stroke="black" points="629.22,-535.26 637.91,-541.33 634.9,-531.17 629.22,-535.26"/>
+<text xml:space="preserve" text-anchor="middle" x="543.91" y="-442.94" font-family="Times,serif" font-size="14.00">Domain</text>
+</g>
+<!-- XB2 -->
+<g id="node19" class="node">
+<title>XB2</title>
+<text xml:space="preserve" text-anchor="middle" x="652.35" y="-761.8" font-family="Times,serif" font-size="14.00">...</text>
+</g>
+<!-- XMPP&#45;&gt;XB2 -->
+<!-- XB3 -->
+<g id="node20" class="node">
+<title>XB3</title>
+<ellipse fill="white" stroke="black" cx="652.35" cy="-915" rx="44.29" ry="18"/>
+<text xml:space="preserve" text-anchor="start" x="628.24" y="-911.8" font-family="Times,serif" font-size="14.00">Broker</text>
+<text xml:space="preserve" text-anchor="start" x="667.12" y="-911.8" font-family="Times,serif" baseline-shift="sub" font-size="14.00">B</text>
+</g>
+<!-- XMPP&#45;&gt;XB3 -->
+<g id="edge25" class="edge">
+<title>XMPP-&gt;XB3</title>
+<path fill="none" stroke="black" d="M466.6,-343.07C469.52,-424.41 480.49,-611.18 521.36,-762 537.95,-823.23 530.65,-850.84 578.06,-893 584.2,-898.46 591.65,-902.57 599.43,-905.66"/>
+<polygon fill="black" stroke="black" points="470.1,-343.01 466.27,-333.13 463.1,-343.25 470.1,-343.01"/>
+<polygon fill="black" stroke="black" points="598.11,-908.91 608.7,-908.79 600.34,-902.27 598.11,-908.91"/>
+<text xml:space="preserve" text-anchor="middle" x="543.91" y="-884.94" font-family="Times,serif" font-size="14.00">Domain</text>
+</g>
+<!-- MD1 -->
+<g id="node3" class="node">
+<title>MD1</title>
+<ellipse fill="white" stroke="black" cx="79.08" cy="-248" rx="38.93" ry="18"/>
+<text xml:space="preserve" text-anchor="start" x="58.86" y="-244.8" font-family="Times,serif" font-size="14.00">Thing</text>
+<text xml:space="preserve" text-anchor="start" x="92.3" y="-244.8" font-family="Times,serif" baseline-shift="sub" font-size="14.00">1</text>
+</g>
+<!-- MD1&#45;&gt;Bridge -->
+<g id="edge1" class="edge">
+<title>MD1-&gt;Bridge</title>
+<path fill="none" stroke="black" d="M116.48,-253.66C134.81,-257.17 157.14,-262.47 176.27,-270 181.88,-272.21 187.6,-274.92 193.13,-277.83"/>
+<polygon fill="black" stroke="black" points="191.05,-280.67 201.49,-282.46 194.44,-274.55 191.05,-280.67"/>
+<text xml:space="preserve" text-anchor="start" x="138.16" y="-286.4" font-family="Times,serif" font-weight="bold" font-size="14.00">HTTP</text>
+<text xml:space="preserve" text-anchor="start" x="140.1" y="-272.4" font-family="Times,serif" font-size="14.00">POST</text>
+</g>
+<!-- MD2 -->
+<g id="node4" class="node">
+<title>MD2</title>
+<text xml:space="preserve" text-anchor="middle" x="79.08" y="-297.8" font-family="Times,serif" font-size="14.00">...</text>
+</g>
+<!-- MD2&#45;&gt;Bridge -->
+<!-- MD3 -->
+<g id="node5" class="node">
+<title>MD3</title>
+<ellipse fill="white" stroke="black" cx="79.08" cy="-356" rx="41.08" ry="18"/>
+<text xml:space="preserve" text-anchor="start" x="57.3" y="-352.8" font-family="Times,serif" font-size="14.00">Thing</text>
+<text xml:space="preserve" text-anchor="start" x="90.74" y="-352.8" font-family="Times,serif" baseline-shift="sub" font-size="14.00">N</text>
+</g>
+<!-- MD3&#45;&gt;Bridge -->
+<g id="edge3" class="edge">
+<title>MD3-&gt;Bridge</title>
+<path fill="none" stroke="black" d="M111.83,-344.68C133.49,-336.96 162.5,-326.61 186.54,-318.04"/>
+<polygon fill="black" stroke="black" points="187.52,-321.41 195.76,-314.75 185.17,-314.82 187.52,-321.41"/>
+<text xml:space="preserve" text-anchor="start" x="138.16" y="-350.24" font-family="Times,serif" font-weight="bold" font-size="14.00">HTTP</text>
+<text xml:space="preserve" text-anchor="start" x="140.1" y="-336.24" font-family="Times,serif" font-size="14.00">POST</text>
+</g>
+<!-- CD11 -->
+<g id="node12" class="node">
+<title>CD11</title>
+<ellipse fill="white" stroke="black" cx="870.56" cy="-86" rx="46.17" ry="18"/>
+<text xml:space="preserve" text-anchor="start" x="845.09" y="-82.8" font-family="Times,serif" font-size="14.00">Thing</text>
+<text xml:space="preserve" text-anchor="start" x="878.54" y="-82.8" font-family="Times,serif" baseline-shift="sub" font-size="14.00">1,1</text>
+</g>
+<!-- XC1&#45;&gt;CD11 -->
+<g id="edge11" class="edge">
+<title>XC1-&gt;CD11</title>
+<path fill="none" stroke="black" d="M711.28,-229.76C714.62,-227.21 717.67,-224.31 720.24,-221 756.7,-174.13 693.9,-128.1 738.24,-88.6 760.46,-68.8 794.16,-68.52 821.86,-72.99"/>
+<polygon fill="black" stroke="black" points="709.7,-226.62 703.1,-234.91 713.43,-232.54 709.7,-226.62"/>
+<polygon fill="black" stroke="black" points="820.96,-76.38 831.43,-74.79 822.25,-69.5 820.96,-76.38"/>
+<text xml:space="preserve" text-anchor="middle" x="766.81" y="-126.4" font-family="Times,serif" font-size="14.00">Node ID</text>
+<text xml:space="preserve" text-anchor="middle" x="766.81" y="-109.6" font-family="Times,serif" font-size="14.00">Source ID</text>
+<text xml:space="preserve" text-anchor="middle" x="766.81" y="-92.8" font-family="Times,serif" font-size="14.00">Partition</text>
+</g>
+<!-- CD12 -->
+<g id="node13" class="node">
+<title>CD12</title>
+<text xml:space="preserve" text-anchor="middle" x="870.56" y="-135.8" font-family="Times,serif" font-size="14.00">...</text>
+</g>
+<!-- XC1&#45;&gt;CD12 -->
+<!-- CD13 -->
+<g id="node14" class="node">
+<title>CD13</title>
+<ellipse fill="white" stroke="black" cx="870.56" cy="-194" rx="55.56" ry="18"/>
+<text xml:space="preserve" text-anchor="start" x="838.29" y="-190.8" font-family="Times,serif" font-size="14.00">Thing</text>
+<text xml:space="preserve" text-anchor="start" x="871.73" y="-190.8" font-family="Times,serif" baseline-shift="sub" font-size="14.00">1,N₁</text>
+</g>
+<!-- XC1&#45;&gt;CD13 -->
+<g id="edge13" class="edge">
+<title>XC1-&gt;CD13</title>
+<path fill="none" stroke="black" d="M709.85,-229.54C713.62,-227.03 717.15,-224.2 720.24,-221 736.48,-204.2 719.1,-185 738.24,-171.6 765.29,-152.67 803.01,-161.82 831.09,-173.61"/>
+<polygon fill="black" stroke="black" points="708.32,-226.38 701.36,-234.36 711.79,-232.46 708.32,-226.38"/>
+<polygon fill="black" stroke="black" points="829.4,-176.69 839.95,-177.59 832.26,-170.31 829.4,-176.69"/>
+<text xml:space="preserve" text-anchor="middle" x="766.81" y="-209.4" font-family="Times,serif" font-size="14.00">Node ID</text>
+<text xml:space="preserve" text-anchor="middle" x="766.81" y="-192.6" font-family="Times,serif" font-size="14.00">Source ID</text>
+<text xml:space="preserve" text-anchor="middle" x="766.81" y="-175.8" font-family="Times,serif" font-size="14.00">Partition</text>
+</g>
+<!-- CDC1 -->
+<g id="node15" class="node">
+<title>CDC1</title>
+<ellipse fill="white" stroke="black" cx="870.56" cy="-248" rx="47.79" ry="18"/>
+<text xml:space="preserve" text-anchor="start" x="843.92" y="-244.8" font-family="Times,serif" font-size="14.00">Thing</text>
+<text xml:space="preserve" text-anchor="start" x="877.37" y="-244.8" font-family="Times,serif" baseline-shift="sub" font-size="14.00">C,1</text>
+</g>
+<!-- XC3&#45;&gt;CDC1 -->
+<g id="edge14" class="edge">
+<title>XC3-&gt;CDC1</title>
+<path fill="none" stroke="black" d="M710.75,-337.32C714.22,-334.87 717.43,-332.11 720.24,-329 739.57,-307.57 716.45,-285.53 738.24,-266.6 758.44,-249.05 787.36,-243.6 812.92,-242.88"/>
+<polygon fill="black" stroke="black" points="709.17,-334.19 702.37,-342.31 712.75,-340.2 709.17,-334.19"/>
+<polygon fill="black" stroke="black" points="812.88,-246.38 822.87,-242.86 812.86,-239.38 812.88,-246.38"/>
+<text xml:space="preserve" text-anchor="middle" x="766.81" y="-304.4" font-family="Times,serif" font-size="14.00">Node ID</text>
+<text xml:space="preserve" text-anchor="middle" x="766.81" y="-287.6" font-family="Times,serif" font-size="14.00">Source ID</text>
+<text xml:space="preserve" text-anchor="middle" x="766.81" y="-270.8" font-family="Times,serif" font-size="14.00">Partition</text>
+</g>
+<!-- CDC2 -->
+<g id="node16" class="node">
+<title>CDC2</title>
+<text xml:space="preserve" text-anchor="middle" x="870.56" y="-297.8" font-family="Times,serif" font-size="14.00">...</text>
+</g>
+<!-- XC3&#45;&gt;CDC2 -->
+<!-- CDC3 -->
+<g id="node17" class="node">
+<title>CDC3</title>
+<ellipse fill="white" stroke="black" cx="870.56" cy="-356" rx="57.18" ry="18"/>
+<text xml:space="preserve" text-anchor="start" x="837.12" y="-352.8" font-family="Times,serif" font-size="14.00">Thing</text>
+<text xml:space="preserve" text-anchor="start" x="870.56" y="-352.8" font-family="Times,serif" baseline-shift="sub" font-size="14.00">C,Nₜ</text>
+</g>
+<!-- XC3&#45;&gt;CDC3 -->
+<g id="edge16" class="edge">
+<title>XC3-&gt;CDC3</title>
+<path fill="none" stroke="black" d="M731.89,-356C754.73,-356 779.49,-356 801.62,-356"/>
+<polygon fill="black" stroke="black" points="732.09,-352.5 722.09,-356 732.09,-359.5 732.09,-352.5"/>
+<polygon fill="black" stroke="black" points="801.42,-359.5 811.42,-356 801.42,-352.5 801.42,-359.5"/>
+<text xml:space="preserve" text-anchor="middle" x="766.81" y="-393.8" font-family="Times,serif" font-size="14.00">Node ID</text>
+<text xml:space="preserve" text-anchor="middle" x="766.81" y="-377" font-family="Times,serif" font-size="14.00">Source ID</text>
+<text xml:space="preserve" text-anchor="middle" x="766.81" y="-360.2" font-family="Times,serif" font-size="14.00">Partition</text>
+</g>
+<!-- N1 -->
+<g id="node21" class="node">
+<title>N1</title>
+<ellipse fill="white" stroke="black" cx="870.56" cy="-496" rx="7.2" ry="7.2"/>
+</g>
+<!-- XB1&#45;&gt;N1 -->
+<g id="edge18" class="edge">
+<title>XB1-&gt;N1</title>
+<path fill="none" stroke="black" d="M687.65,-549.56C720.03,-539.74 769.96,-524.7 813.39,-512 826.4,-508.2 841.14,-504 852.26,-500.86"/>
+<polygon fill="black" stroke="black" points="853.19,-504.24 861.86,-498.16 851.29,-497.5 853.19,-504.24"/>
+</g>
+<!-- N2 -->
+<g id="node22" class="node">
+<title>N2</title>
+<ellipse fill="white" stroke="black" cx="870.56" cy="-528" rx="7.2" ry="7.2"/>
+</g>
+<!-- XB1&#45;&gt;N2 -->
+<g id="edge19" class="edge">
+<title>XB1-&gt;N2</title>
+<path fill="none" stroke="black" d="M693.26,-554.09C740.65,-547.08 817.59,-535.69 851.98,-530.6"/>
+<polygon fill="black" stroke="black" points="852.05,-534.13 861.43,-529.2 851.03,-527.21 852.05,-534.13"/>
+</g>
+<!-- N3 -->
+<g id="node23" class="node">
+<title>N3</title>
+<ellipse fill="white" stroke="black" cx="870.56" cy="-560" rx="7.2" ry="7.2"/>
+</g>
+<!-- XB1&#45;&gt;N3 -->
+<g id="edge20" class="edge">
+<title>XB1-&gt;N3</title>
+<path fill="none" stroke="black" d="M695.3,-560C742.78,-560 817.94,-560 851.89,-560"/>
+<polygon fill="black" stroke="black" points="851.55,-563.5 861.55,-560 851.55,-556.5 851.55,-563.5"/>
+</g>
+<!-- N4 -->
+<g id="node24" class="node">
+<title>N4</title>
+<ellipse fill="white" stroke="black" cx="870.56" cy="-592" rx="7.2" ry="7.2"/>
+</g>
+<!-- XB1&#45;&gt;N4 -->
+<g id="edge21" class="edge">
+<title>XB1-&gt;N4</title>
+<path fill="none" stroke="black" d="M693.26,-565.91C740.65,-572.92 817.59,-584.31 851.98,-589.4"/>
+<polygon fill="black" stroke="black" points="851.03,-592.79 861.43,-590.8 852.05,-585.87 851.03,-592.79"/>
+</g>
+<!-- N5 -->
+<g id="node25" class="node">
+<title>N5</title>
+<ellipse fill="white" stroke="black" cx="870.56" cy="-624" rx="7.2" ry="7.2"/>
+</g>
+<!-- XB1&#45;&gt;N5 -->
+<g id="edge22" class="edge">
+<title>XB1-&gt;N5</title>
+<path fill="none" stroke="black" d="M687.65,-570.44C720.03,-580.26 769.96,-595.3 813.39,-608 826.4,-611.8 841.14,-616 852.26,-619.14"/>
+<polygon fill="black" stroke="black" points="851.29,-622.5 861.86,-621.84 853.19,-615.76 851.29,-622.5"/>
+</g>
+<!-- N6 -->
+<g id="node26" class="node">
+<title>N6</title>
+<ellipse fill="white" stroke="black" cx="870.56" cy="-656" rx="7.2" ry="7.2"/>
+</g>
+<!-- XB1&#45;&gt;N6 -->
+<g id="edge23" class="edge">
+<title>XB1-&gt;N6</title>
+<path fill="none" stroke="black" d="M690.02,-568.87C700.21,-572.17 711,-576.49 720.24,-582 729.69,-587.63 729.34,-592.53 738.24,-599 769.02,-621.36 778.18,-625.59 813.39,-640 826.07,-645.19 841.02,-649.36 852.3,-652.14"/>
+<polygon fill="black" stroke="black" points="851.17,-655.47 861.7,-654.32 852.75,-648.65 851.17,-655.47"/>
+</g>
+<!-- M1 -->
+<g id="node27" class="node">
+<title>M1</title>
+<ellipse fill="white" stroke="black" cx="870.56" cy="-851" rx="7.2" ry="7.2"/>
+</g>
+<!-- XB3&#45;&gt;M1 -->
+<g id="edge26" class="edge">
+<title>XB3-&gt;M1</title>
+<path fill="none" stroke="black" d="M688.59,-904.28C720.99,-894.46 770.37,-879.58 813.39,-867 826.4,-863.2 841.14,-859 852.26,-855.86"/>
+<polygon fill="black" stroke="black" points="853.19,-859.24 861.86,-853.16 851.29,-852.5 853.19,-859.24"/>
+</g>
+<!-- M2 -->
+<g id="node28" class="node">
+<title>M2</title>
+<ellipse fill="white" stroke="black" cx="870.56" cy="-883" rx="7.2" ry="7.2"/>
+</g>
+<!-- XB3&#45;&gt;M2 -->
+<g id="edge27" class="edge">
+<title>XB3-&gt;M2</title>
+<path fill="none" stroke="black" d="M694.53,-908.91C741.9,-901.89 817.55,-890.7 851.75,-885.64"/>
+<polygon fill="black" stroke="black" points="852.14,-889.12 861.52,-884.19 851.11,-882.19 852.14,-889.12"/>
+</g>
+<!-- M3 -->
+<g id="node29" class="node">
+<title>M3</title>
+<ellipse fill="white" stroke="black" cx="870.56" cy="-915" rx="7.2" ry="7.2"/>
+</g>
+<!-- XB3&#45;&gt;M3 -->
+<g id="edge28" class="edge">
+<title>XB3-&gt;M3</title>
+<path fill="none" stroke="black" d="M697.11,-915C744.61,-915 818.17,-915 851.75,-915"/>
+<polygon fill="black" stroke="black" points="851.67,-918.5 861.67,-915 851.67,-911.5 851.67,-918.5"/>
+</g>
+<!-- M4 -->
+<g id="node30" class="node">
+<title>M4</title>
+<ellipse fill="white" stroke="black" cx="870.56" cy="-947" rx="7.2" ry="7.2"/>
+</g>
+<!-- XB3&#45;&gt;M4 -->
+<g id="edge29" class="edge">
+<title>XB3-&gt;M4</title>
+<path fill="none" stroke="black" d="M694.53,-921.09C741.9,-928.11 817.55,-939.3 851.75,-944.36"/>
+<polygon fill="black" stroke="black" points="851.11,-947.81 861.52,-945.81 852.14,-940.88 851.11,-947.81"/>
+</g>
+<!-- M5 -->
+<g id="node31" class="node">
+<title>M5</title>
+<ellipse fill="white" stroke="black" cx="870.56" cy="-979" rx="7.2" ry="7.2"/>
+</g>
+<!-- XB3&#45;&gt;M5 -->
+<g id="edge30" class="edge">
+<title>XB3-&gt;M5</title>
+<path fill="none" stroke="black" d="M688.59,-925.72C720.99,-935.54 770.37,-950.42 813.39,-963 826.4,-966.8 841.14,-971 852.26,-974.14"/>
+<polygon fill="black" stroke="black" points="851.29,-977.5 861.86,-976.84 853.19,-970.76 851.29,-977.5"/>
+</g>
+<!-- M6 -->
+<g id="node32" class="node">
+<title>M6</title>
+<ellipse fill="white" stroke="black" cx="870.56" cy="-1011" rx="7.2" ry="7.2"/>
+</g>
+<!-- XB3&#45;&gt;M6 -->
+<g id="edge31" class="edge">
+<title>XB3-&gt;M6</title>
+<path fill="none" stroke="black" d="M679.01,-929.7C710.06,-947.05 764.31,-975.94 813.39,-995 826.16,-999.96 841.1,-1004.14 852.37,-1006.99"/>
+<polygon fill="black" stroke="black" points="851.19,-1010.3 861.73,-1009.24 852.83,-1003.5 851.19,-1010.3"/>
+</g>
+</g>
+</svg>
