@@ -26,10 +26,12 @@ using Waher.Persistence.Files;
 using Waher.Persistence.Serialization;
 using Waher.Runtime.Inventory;
 using Waher.Runtime.Settings;
+using Waher.Runtime.Timing;
 using Waher.Script;
 using Waher.Script.Graphs;
 using Waher.Script.Model;
 using Waher.Security;
+using Waher.Security.JWT;
 using Waher.Things;
 using Waher.Things.Http;
 using Waher.Things.Ip;
@@ -49,6 +51,9 @@ internal class Program
 	private static string logJid = string.Empty;
 	private static string ownerJid = string.Empty;
 	private static string appDataFolder = string.Empty;
+	private static HttpServer? httpServer = null;
+	private static Scheduler? scheduler = null;
+	private static JwtFactory? jwtFactory = null;
 	private static ConcentratorServer? concentratorServer = null;
 	private static ThingRegistryClient? registryClient = null;
 	private static ProvisioningClient? provisioningClient = null;
@@ -106,8 +111,6 @@ internal class Program
 
 			Database.Register(db);
 
-			await Types.StartAllModules(60000);
-
 			#region Device ID
 
 			deviceId = await RuntimeSettings.GetAsync("DeviceId", string.Empty);
@@ -133,6 +136,7 @@ internal class Program
 			string XmppApiKey = await EnvironmentSettings.GetAsync("XMPP_APIKEY", "XmppApiKey", string.Empty);
 			string XmppApiSecret = await EnvironmentSettings.GetAsync("XMPP_APISECRET", "XmppApiSecret", string.Empty);
 			bool Updated = false;
+			byte[] Bin;
 
 			while (true)
 			{
@@ -226,7 +230,7 @@ internal class Program
 				if (string.IsNullOrEmpty(XmppPasswordHash))
 				{
 					using RandomNumberGenerator Rnd = RandomNumberGenerator.Create();
-					byte[] Bin = new byte[32];  // 256 random bits
+					Bin = new byte[32];  // 256 random bits
 
 					Rnd.GetBytes(Bin);
 					XmppPasswordHash = Hashes.BinaryToString(Bin);
@@ -270,8 +274,51 @@ internal class Program
 
 			#endregion
 
-			#region Local Web Server Connection
+			#region JWT Factory
 
+			string JwtFactorySecret = await EnvironmentSettings.GetAsync("JWT_SECRET", "JwtSecret", string.Empty);
+
+			if (string.IsNullOrEmpty(JwtFactorySecret))
+			{
+				JwtFactorySecret = InputString("JWT Secret", "Leave blank to randomize secret.", JwtFactorySecret);
+				if (string.IsNullOrEmpty(JwtFactorySecret))
+				{
+					using RandomNumberGenerator Rnd = RandomNumberGenerator.Create();
+					Bin = new byte[32];  // 256 random bits
+
+					Rnd.GetBytes(Bin);
+					JwtFactorySecret = Convert.ToBase64String(Bin);
+				}
+
+				await RuntimeSettings.SetAsync("JwtSecret", JwtFactorySecret);
+			}
+				
+			Bin = Encoding.UTF8.GetBytes(JwtFactorySecret);
+
+			jwtFactory = JwtFactory.CreateHmacSha256(Bin);
+			Types.SetModuleParameter("JWT", jwtFactory);
+
+			#endregion
+
+			#region Local Web Server
+
+			string RootFolder = Path.Combine(Environment.CurrentDirectory, "Root");
+			Types.SetModuleParameter("Root", RootFolder);
+
+			httpServer = new();
+			Types.SetModuleParameter("HTTP", httpServer);
+
+			scheduler = new Scheduler();
+			Types.SetModuleParameter("Scheduler", scheduler);
+
+			httpServer.Register(new HttpFolderResource(string.Empty, RootFolder, false, false, true, true));
+
+			httpServer.Register("/", (req, resp) =>
+			{
+				throw new TemporaryRedirectException("/Index.md");
+			});
+
+			await Types.StartAllModules(60000);     // HttpModule requires the Web Server to be active
 			await HttpModule.CheckLocalWebServerNode();
 
 			#endregion
@@ -407,6 +454,9 @@ internal class Program
 			SafeDispose(ref bobClient);
 			SafeDispose(ref concentratorServer);
 			SafeDispose(ref xmppClient);
+			SafeDispose(ref httpServer);
+			SafeDispose(ref scheduler);
+			SafeDispose(ref jwtFactory);
 
 			await Log.TerminateAsync();
 

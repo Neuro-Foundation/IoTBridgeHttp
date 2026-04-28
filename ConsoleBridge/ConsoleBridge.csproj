@@ -11,10 +11,14 @@
   <ItemGroup>
     <None Remove="Assets\Icon.png" />
     <None Remove="ConsoleBridge.manifest" />
+    <None Remove="Root\favicon.ico" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="ConsoleBridge.manifest">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\favicon.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

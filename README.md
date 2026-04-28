@@ -42,6 +42,7 @@ to input the value on the console.
 | `REGISTRY_ROOM`			| String  | Room where the bridge is installed.                                                                                   |
 | `REGISTRY_NAME`			| String  | Name associated with bridge.                                                                                          |
 | `REGISTRY_LOCATION`		| Boolean | If location has been completed. (This means, any location-specific environment variables not provided, will be interpreted as intensionally left blank, and user will not be prompted to input values for them. |
+| `JWT_SECRET`              | String  | Secret used to create JWT tokens. If not provided, a random secret will be created.                                   |
 
 ### Running in a Docker container
 

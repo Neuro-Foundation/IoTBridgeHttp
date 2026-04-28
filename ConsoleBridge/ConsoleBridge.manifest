@@ -254,6 +254,9 @@
 	<Assembly fileName="Waher.Things.Virtual.dll"/>
 	<Assembly fileName="Waher.Things.Xmpp.dll"/>
 	<Assembly fileName="WindowsBase.dll"/>
+	<Folder name="Root">
+		<Content fileName="favicon.ico"/>
+	</Folder>
 	<From image="mcr.microsoft.com/dotnet/runtime-deps:8.0"/>
 	<Volume path="/var/lib/IoT Gateway"/>
 	<Variable name="XMPP_HOST" default="" label="XMPP broker to connect to."/>
@@ -274,6 +277,7 @@
 	<Variable name="REGISTRY_APARTMENT" default="" label="Apartment to register in Thing Registry."/>
 	<Variable name="REGISTRY_ROOM" default="" label="Room to register in Thing Registry."/>
 	<Variable name="REGISTRY_NAME" default="" label="Name to register in Thing Registry."/>
+	<Variable name="JWT_SECRET" default="" label="BASE64-encoded binary secret used to create JWT tokens. If not provided, a random secret will be created."/>
 	<Command executable="chmod">
 		<Argument>+x</Argument>
 		<Argument>/opt/IoTGateway/ConsoleBridge</Argument>
