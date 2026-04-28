@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Web;
 using Waher.Content;
@@ -59,6 +60,8 @@ internal class Program
 	private static ProvisioningClient? provisioningClient = null;
 	private static BobClient? bobClient = null;
 	private static ChatServer? chatServer = null;
+	private static X509Certificate? certificate = null;
+	private static string? certificatePassword = null;
 
 	private static async Task Main()
 	{
@@ -297,6 +300,50 @@ internal class Program
 
 			jwtFactory = JwtFactory.CreateHmacSha256(Bin);
 			Types.SetModuleParameter("JWT", jwtFactory);
+
+			#endregion
+
+			#region X.509 Certificate
+
+			string CertificateFileName = await EnvironmentSettings.GetAsync("X509_FILENAME", "X509FileName", string.Empty);
+			string CertificatePassword = await EnvironmentSettings.GetAsync("X509_PASSWORD", "X509Password", string.Empty);
+
+			if (string.IsNullOrEmpty(CertificateFileName))
+			{
+				CertificateFileName = InputString("Certificate File Name", "Leave blank to not use certificate.", CertificateFileName);
+				if (string.IsNullOrEmpty(CertificateFileName))
+					CertificateFileName = "-";
+				else
+				{
+					CertificatePassword = InputString("Certificate Password", string.Empty, CertificatePassword);
+
+					certificate = new X509Certificate2(CertificateFileName, CertificatePassword);
+				}
+
+				await RuntimeSettings.SetAsync("X509FileName", CertificateFileName);
+
+				if (certificate is not null)
+				{
+					await RuntimeSettings.SetAsync("X509Certificate", Convert.ToBase64String(certificate.GetRawCertData()));
+					await RuntimeSettings.SetAsync("X509Password", CertificatePassword);
+				}
+			}
+			else if (CertificateFileName != "-")
+			{
+				string Base64 = await RuntimeSettings.GetAsync("X509Certificate", string.Empty);
+				if (!string.IsNullOrEmpty(Base64))
+				{
+					Bin = Convert.FromBase64String(Base64);
+					CertificatePassword= await RuntimeSettings.GetAsync("X509Password", CertificatePassword);
+
+					certificate = new X509Certificate2(Bin, CertificatePassword);
+				}
+				else
+					certificate = new X509Certificate2(CertificateFileName, CertificatePassword);
+			}
+
+			if (certificate is not null)
+				Types.SetModuleParameter("X509", certificate);
 
 			#endregion
 
