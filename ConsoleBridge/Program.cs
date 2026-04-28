@@ -15,6 +15,7 @@ using Waher.Events;
 using Waher.Events.Console;
 using Waher.Events.Filter;
 using Waher.Events.XMPP;
+using Waher.Networking;
 using Waher.Networking.HTTP;
 using Waher.Networking.XMPP;
 using Waher.Networking.XMPP.BitsOfBinary;
@@ -33,6 +34,8 @@ using Waher.Script.Graphs;
 using Waher.Script.Model;
 using Waher.Security;
 using Waher.Security.JWT;
+using Waher.Security.LoginMonitor;
+using Waher.Security.Users;
 using Waher.Things;
 using Waher.Things.Http;
 using Waher.Things.Ip;
@@ -61,6 +64,8 @@ internal class Program
 	private static BobClient? bobClient = null;
 	private static ChatServer? chatServer = null;
 	private static X509Certificate? certificate = null;
+	private static LoginAuditor? loginAuditor = null;
+	private static IPersistentDictionary? nonceValues = null;
 
 	private static async Task Main()
 	{
@@ -346,6 +351,20 @@ internal class Program
 
 			#endregion
 
+			#region Login Auditor
+
+			loginAuditor = new LoginAuditor("Login Auditor",
+				new LoginInterval(5, TimeSpan.FromHours(1)),    // Maximum 5 failed login attempts in an hour
+				new LoginInterval(2, TimeSpan.FromDays(1)),     // Maximum 2x5 failed login attempts in a day
+				new LoginInterval(2, TimeSpan.FromDays(7)),     // Maximum 2x2x5 failed login attempts in a week
+				new LoginInterval(2, TimeSpan.MaxValue));       // Maximum 2x2x2x5 failed login attempts in total, then blocked.
+
+			Log.Register(loginAuditor);
+
+			nonceValues = await Database.GetDictionary("Nonces");
+
+			#endregion
+
 			#region Local Web Server
 
 			string RootFolder = Path.Combine(Environment.CurrentDirectory, "Root");
@@ -373,8 +392,13 @@ internal class Program
 					await RuntimeSettings.SetAsync("HttpsPort", HttpsPort);
 				}
 			
-				httpServer = new((int)HttpPort, (int)HttpsPort, certificate);
+				httpServer = new([(int)HttpPort], [(int)HttpsPort], certificate, 
+					true, ClientCertificates.Optional, false, [], true);
+
+				loginAuditor.Domain = BinaryTcpClient.GetDomainFromSubject(certificate.Subject);
 			}
+
+			httpServer.LoginAuditor = loginAuditor;
 
 			Types.SetModuleParameter("HTTP", httpServer);
 
@@ -383,9 +407,85 @@ internal class Program
 
 			httpServer.Register(new HttpFolderResource(string.Empty, RootFolder, false, false, true, true));
 
-			httpServer.Register("/", (req, resp) =>
+			httpServer.Register("/", async (req, resp) =>
 			{
-				throw new TemporaryRedirectException("/Index.md");
+				await resp.SendResponse(new TemporaryRedirectException("/Index.md"));
+			});
+
+			httpServer.Register("/Login", async (req, resp) =>
+			{
+				string? Message = null;			SafeDispose(ref nonceValues);
+				string? Jwt = null;
+				bool Ok = false;
+
+				if (!req.HasData)
+					Message = "Missing payload.";
+				else
+				{
+					ContentResponse Content = await req.DecodeDataAsync();
+					if (Content.HasError)
+						Message = Content.Error.Message;
+					else
+					{
+						if (Content.Decoded is not Dictionary<string, object> Request ||
+							!Request.TryGetValue("UserName", out object? Obj) ||
+							Obj is not string UserName ||
+							!Request.TryGetValue("PasswordHash", out Obj) ||
+							Obj is not string PasswordHash ||
+							!Request.TryGetValue("Nonce", out Obj) ||
+							Obj is not string Nonce)
+						{
+							Message = "Invalid payload.";
+						}
+						else
+						{
+							if (await nonceValues!.ContainsKeyAsync(Nonce))
+								Message = "Nonce already used.";
+							else
+							{
+								LoginResult Result = await Users.Login(UserName, PasswordHash, Nonce, req.RemoteEndPoint, "HTTP");
+
+								switch (Result.Type)
+								{
+									case LoginResultType.PermanentlyBlocked:
+										Message = "Permanently blocked.";
+										break;
+
+									case LoginResultType.TemporarilyBlocked:
+										Message = "Temporarily blocked. Try again after " + Result.Next.ToString();
+										break;
+
+									case LoginResultType.InvalidCredentials:
+										Message = "Invalid user name or password.";
+										break;
+
+									case LoginResultType.NoPassword:
+										Message = "No password provided.";
+										break;
+
+									case LoginResultType.Success:
+										Message = "Login successful.";
+										Ok = true;
+										await nonceValues.AddAsync(Nonce, true);
+
+										Jwt = await Result.User.CreateToken(jwtFactory, req.Encrypted);
+										break;
+
+									default:
+										Message = "An error occurred during login. Please try again later.";
+										break;
+								}
+							}
+						}
+					}
+				}
+
+				await resp.Return(new Dictionary<string, object?>()
+				{
+					{ "Ok", Ok },
+					{ "Message", Message },
+					{ "Jwt", Jwt }
+				});
 			});
 
 			await Types.StartAllModules(60000);     // HttpModule requires the Web Server to be active
@@ -527,6 +627,7 @@ internal class Program
 			SafeDispose(ref httpServer);
 			SafeDispose(ref scheduler);
 			SafeDispose(ref jwtFactory);
+			SafeDispose(ref loginAuditor);
 
 			await Log.TerminateAsync();
 

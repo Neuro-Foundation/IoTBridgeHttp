@@ -140,7 +140,61 @@ The bridge includes several different node types that can be used to configure i
 *	`Virtual` nodes are placeholders where external logic (or script logic) can aggregate information
 	in a way that makes them accessible by others in the federated network.
 
-API Documentation
---------------------
+API Reference
+----------------
 
+The local web service registers a series of web resources that external devices can use.
+Following is a brief overview, with references for more details.
 
+### Sensor Data Receptor 
+
+The Sensor data receptor resource `/ReportSensorData` is used by external devices to `POST`
+sensor data to the bridge. The device needs to authenticate with the bridge, before it can
+be authorized to access this resource. The device can use different mechanisms to authenticate
+itself with the bridge:
+
+* Use of *Mutual TLS* (mTLS). This requires the bridge to be configured with a certificate.
+* Use of `WWW-Authenticate` web login procedure.
+* Use of JSON Web Tokens (JWT) Bearer tokens for authentication. This requires the device
+to login first using the Login resource (see below).
+
+For details on how the resource works, see the 
+[Sensor Data Receptor API endpoint on `lab.tagroot.io`](https://lab.tagroot.io/ReportSensorData)
+as an example. The same page can be viewed on the bridge, once it is up and running.
+
+### Login resource
+
+The Login resource `/Login` is used to login to the bridge. If successful, a `Bearer` JWT
+token is returned. External devices need to login to the bridge before they can `POST` 
+sensor data to it. A token is valid for *1 hour*. The external device needs to renew the
+token by loggin in again, if accessing the bridge for a longer period of time.
+
+Input payload is expected to be a JSON object of the following type.
+
+```
+{
+	"UserName": Required(Str(PUserName)),
+	"PasswordHash": Required(Str(PPasswordHash)),
+	"Nonce": Required(Str(PNonce))
+}
+```
+
+The response is a JSON object of the following type:
+
+```
+{
+	"Ok": Required(Bool(POK)),
+	"Message": Required(Str(PMessage)),
+	"Token": Optional(Str(PToken))
+}
+```
+
+See the [Web login procedure](https://lab.tagroot.io/Community/Post/Web_login_procedure)
+article for more details on how to compute the password hash and nonce values, and use them
+in the login process.
+
+### Root folder resource
+
+The Root folder resource `/`. If no specific resource above is referenced, the default is to
+look for a file resource in the `Root` folder, and return it if found. This allows you to
+host custom web content on the bridge.
