@@ -14,3 +14,10 @@ More information about the HTTP Bridge can be found in the following resources:
 
 * [Sensor Data API reference](/ReportSensorData) on this gateway.
 * [HTTP Bridge repository](https://github.com/Neuro-Foundation/IoTBridgeHttp) on GitHub.
+{{if exists(User) then
+	]]* [Users](/Admin/Users.md)
+* [Roles](/Admin/Roles.md)
+* [Log Out](/Logout.md)
+[[ else
+	]]* [Log In](/Login.md?from=Index.md)
+[[}}

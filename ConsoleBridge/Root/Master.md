@@ -1,6 +1,7 @@
 ﻿Copyright: /Copyright.md
 Icon: /favicon.ico
 CSS: /Master.css
+Javascript: /Master.js
 
 <header id="native-header">
 <nav>

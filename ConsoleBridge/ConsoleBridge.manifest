@@ -236,7 +236,9 @@
 	<Assembly fileName="Waher.Runtime.Threading.dll"/>
 	<Assembly fileName="Waher.Runtime.Timing.dll"/>
 	<Assembly fileName="Waher.Script.dll"/>
+	<Assembly fileName="Waher.Script.Content.dll"/>
 	<Assembly fileName="Waher.Script.Graphs.dll"/>
+	<Assembly fileName="Waher.Script.Persistence.dll"/>
 	<Assembly fileName="Waher.Security.CallStack.dll"/>
 	<Assembly fileName="Waher.Security.ChaChaPoly.dll"/>
 	<Assembly fileName="Waher.Security.dll"/>
@@ -258,8 +260,23 @@
 	<Folder name="Root">
 		<Content fileName="favicon.ico"/>
 		<Content fileName="Index.md"/>
+		<Content fileName="Login.js"/>
+		<Content fileName="Login.md"/>
+		<Content fileName="Logout.md"/>
 		<Content fileName="Master.css"/>
+		<Content fileName="Master.js"/>
 		<Content fileName="Master.md"/>
+		<Content fileName="Sha3.js"/>
+		<Folder name="Admin">
+			<Content fileName="Role.md"/>
+			<Content fileName="Roles.js"/>
+			<Content fileName="Roles.md"/>
+			<Content fileName="Roles.ws"/>
+			<Content fileName="User.md"/>
+			<Content fileName="Users.js"/>
+			<Content fileName="Users.md"/>
+			<Content fileName="Users.ws"/>
+		</Folder>
 	</Folder>
 	<From image="mcr.microsoft.com/dotnet/runtime-deps:8.0"/>
 	<Volume path="/var/lib/IoT Gateway"/>
@@ -286,6 +303,8 @@
 	<Variable name="X509_PASSWORD" default="" label="Password for X.509 certificate."/>
 	<Variable name="HTTP_PORT" default="80" label="Port number to use for unencrypted HTTP."/>
 	<Variable name="HTTPS_PORT" default="443" label="Port number to use for encrypted HTTPS."/>
+	<Variable name="ADMIN_NAME" default="" label="Administrator User name."/>
+	<Variable name="ADMIN_PASSWORD" default="" label="Administrator Password."/>
 	<Variable name="USER_COUNT" default="0" label="Number of users to create. (Default is 0, which will trigger manual input of users.)"/>
 	<Variable name="USER_N_NAME" default="" label="User name for user N. (where N is a number between 1 and USERS_COUNT)"/>
 	<Variable name="USER_N_PASSWORD" default="" label="User password for user N. (where N is a number between 1 and USERS_COUNT)"/>

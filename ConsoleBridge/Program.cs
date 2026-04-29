@@ -7,7 +7,6 @@ using System.Text;
 using System.Web;
 using Waher.Content;
 using Waher.Content.Html;
-using Waher.Content.Html.Elements;
 using Waher.Content.Markdown;
 using Waher.Content.Markdown.Web;
 using Waher.Content.Markdown.Web.WebScript;
@@ -27,18 +26,20 @@ using Waher.Networking.XMPP.Provisioning;
 using Waher.Networking.XMPP.ServiceDiscovery;
 using Waher.Persistence;
 using Waher.Persistence.Files;
+using Waher.Persistence.Filters;
 using Waher.Persistence.Serialization;
-using Waher.Runtime.Console;
 using Waher.Runtime.Inventory;
-using Waher.Runtime.Queue;
 using Waher.Runtime.Settings;
 using Waher.Runtime.Timing;
 using Waher.Script;
+using Waher.Script.Content.Functions.Encoding;
 using Waher.Script.Graphs;
 using Waher.Script.Model;
+using Waher.Script.Persistence.SQL;
 using Waher.Security;
 using Waher.Security.JWT;
 using Waher.Security.LoginMonitor;
+using Waher.Security.SHA3;
 using Waher.Security.Users;
 using Waher.Things;
 using Waher.Things.Http;
@@ -47,493 +48,517 @@ using Waher.Things.Metering;
 using Waher.Things.Virtual;
 using Waher.Things.Xmpp;
 
-internal class Program
+namespace ConsoleBridge
 {
-	private static FilesProvider? db = null;
-	private static XmppClient? xmppClient = null;
-
-	private static readonly QrEncoder qrEncoder = new();
-	private static string deviceId = string.Empty;
-	private static string thingRegistryJid = string.Empty;
-	private static string provisioningJid = string.Empty;
-	private static string logJid = string.Empty;
-	private static string ownerJid = string.Empty;
-	private static string appDataFolder = string.Empty;
-	private static HttpServer? httpServer = null;
-	private static Scheduler? scheduler = null;
-	private static JwtFactory? jwtFactory = null;
-	private static ConcentratorServer? concentratorServer = null;
-	private static ThingRegistryClient? registryClient = null;
-	private static ProvisioningClient? provisioningClient = null;
-	private static BobClient? bobClient = null;
-	private static Waher.Networking.XMPP.Chat.ChatServer? chatServer = null;
-	private static X509Certificate? certificate = null;
-	private static LoginAuditor? loginAuditor = null;
-	private static IPersistentDictionary? nonceValues = null;
-
-	private static async Task Main()
+	public static class Program
 	{
-		try
+		private static FilesProvider? db = null;
+		private static XmppClient? xmppClient = null;
+
+		private static readonly QrEncoder qrEncoder = new();
+		private static string deviceId = string.Empty;
+		private static string thingRegistryJid = string.Empty;
+		private static string provisioningJid = string.Empty;
+		private static string logJid = string.Empty;
+		private static string ownerJid = string.Empty;
+		private static string appDataFolder = string.Empty;
+		private static string domain = string.Empty;
+		private static HttpServer? httpServer = null;
+		private static Scheduler? scheduler = null;
+		private static JwtFactory? jwtFactory = null;
+		private static ConcentratorServer? concentratorServer = null;
+		private static ThingRegistryClient? registryClient = null;
+		private static ProvisioningClient? provisioningClient = null;
+		private static BobClient? bobClient = null;
+		private static Waher.Networking.XMPP.Chat.ChatServer? chatServer = null;
+		private static X509Certificate? certificate = null;
+		private static LoginAuditor? loginAuditor = null;
+		private static IPersistentDictionary? nonceValues = null;
+
+		private static async Task Main()
 		{
-			Console.ForegroundColor = ConsoleColor.White;
-
-			#region Initializing system
-
-			Log.Register(new ConsoleEventSink(false, false));
-			Log.Informational("Starting application.");
-
-			Types.Initialize(
-				typeof(Log).GetTypeInfo().Assembly,
-				typeof(Database).GetTypeInfo().Assembly,
-				typeof(FilesProvider).GetTypeInfo().Assembly,
-				typeof(ObjectSerializer).GetTypeInfo().Assembly,
-				typeof(RuntimeSettings).GetTypeInfo().Assembly,
-				typeof(XmppClient).GetTypeInfo().Assembly,
-				typeof(InternetContent).GetTypeInfo().Assembly,
-				typeof(MarkdownDocument).GetTypeInfo().Assembly,
-				typeof(MarkdownToHtmlConverter).GetTypeInfo().Assembly,
-				typeof(HtmlDocument).GetTypeInfo().Assembly,
-				typeof(XML).GetTypeInfo().Assembly,
-				typeof(Expression).GetTypeInfo().Assembly,
-				typeof(Graph).GetTypeInfo().Assembly,
-				typeof(Select).GetTypeInfo().Assembly,
-				typeof(ThingReference).GetTypeInfo().Assembly,
-				typeof(HttpServer).GetTypeInfo().Assembly,
-				typeof(LocalWebServerNode).GetTypeInfo().Assembly,
-				typeof(IpHost).GetTypeInfo().Assembly,
-				typeof(MeteringTopology).GetTypeInfo().Assembly,
-				typeof(ScriptNode).GetTypeInfo().Assembly,
-				typeof(VirtualNode).GetTypeInfo().Assembly,
-				typeof(XmppBrokerNode).GetTypeInfo().Assembly,
-				typeof(Hashes).GetTypeInfo().Assembly,
-				typeof(Program).GetTypeInfo().Assembly);
-
-			#endregion
-
-			#region Setting up database
-
-			if (RunningInsideContainer())
-				appDataFolder = "/var/lib/IoT Gateway/";
-			else
-				appDataFolder = Environment.CurrentDirectory;
-
-			Log.Informational("Application data folder: " + appDataFolder);
-
-			db = await FilesProvider.CreateAsync(Path.Combine(appDataFolder, "Data"),
-					"Default", 8192, 1000, 8192, Encoding.UTF8, 10000);
-			await db.RepairIfInproperShutdown(null);
-
-			Database.Register(db);
-
-			#region Device ID
-
-			deviceId = await RuntimeSettings.GetAsync("DeviceId", string.Empty);
-			if (string.IsNullOrEmpty(deviceId))
+			try
 			{
-				deviceId = Guid.NewGuid().ToString().Replace("-", string.Empty);
-				await RuntimeSettings.SetAsync("DeviceId", deviceId);
-			}
+				Console.ForegroundColor = ConsoleColor.White;
 
-			Log.Informational("Device ID: " + deviceId);
+				#region Initializing system
 
-			#endregion
+				Log.Register(new ConsoleEventSink(false, false));
+				Log.Informational("Starting application.");
 
-			#endregion
+				Types.Initialize(
+					typeof(Log).GetTypeInfo().Assembly,
+					typeof(Database).GetTypeInfo().Assembly,
+					typeof(FilesProvider).GetTypeInfo().Assembly,
+					typeof(ObjectSerializer).GetTypeInfo().Assembly,
+					typeof(RuntimeSettings).GetTypeInfo().Assembly,
+					typeof(XmppClient).GetTypeInfo().Assembly,
+					typeof(InternetContent).GetTypeInfo().Assembly,
+					typeof(MarkdownDocument).GetTypeInfo().Assembly,
+					typeof(MarkdownToHtmlConverter).GetTypeInfo().Assembly,
+					typeof(HtmlDocument).GetTypeInfo().Assembly,
+					typeof(XML).GetTypeInfo().Assembly,
+					typeof(Expression).GetTypeInfo().Assembly,
+					typeof(Select).GetTypeInfo().Assembly,
+					typeof(Graph).GetTypeInfo().Assembly,
+					typeof(Base64Encode).GetTypeInfo().Assembly,
+					typeof(ThingReference).GetTypeInfo().Assembly,
+					typeof(HttpServer).GetTypeInfo().Assembly,
+					typeof(LocalWebServerNode).GetTypeInfo().Assembly,
+					typeof(IpHost).GetTypeInfo().Assembly,
+					typeof(MeteringTopology).GetTypeInfo().Assembly,
+					typeof(ScriptNode).GetTypeInfo().Assembly,
+					typeof(VirtualNode).GetTypeInfo().Assembly,
+					typeof(XmppBrokerNode).GetTypeInfo().Assembly,
+					typeof(Hashes).GetTypeInfo().Assembly,
+					typeof(Users).GetTypeInfo().Assembly,
+					typeof(Program).GetTypeInfo().Assembly);
 
-			#region XMPP Connection
+				#endregion
 
-			string XmppHost = await EnvironmentSettings.GetAsync("XMPP_HOST", "XmppHost", "lab.tagroot.io");
-			int XmppPort = (int)await EnvironmentSettings.GetAsync("XMPP_PORT", "XmppPort", 5222);
-			string XmppUserName = await EnvironmentSettings.GetAsync("XMPP_USERNAME", "XmppUserName", string.Empty);
-			string XmppPasswordHash = await EnvironmentSettings.GetAsync("XMPP_PASSWORD", "XmppPasswordHash", string.Empty);
-			string XmppPasswordHashMethod = await EnvironmentSettings.GetAsync("XMPP_PASSWORDHASHMETHOD", "XmppPasswordHashMethod", string.Empty);
-			string XmppApiKey = await EnvironmentSettings.GetAsync("XMPP_APIKEY", "XmppApiKey", string.Empty);
-			string XmppApiSecret = await EnvironmentSettings.GetAsync("XMPP_APISECRET", "XmppApiSecret", string.Empty);
-			bool Updated = false;
-			byte[] Bin;
-
-			while (true)
-			{
-				if (!string.IsNullOrEmpty(XmppHost) && !string.IsNullOrEmpty(XmppUserName) && !string.IsNullOrEmpty(XmppPasswordHash))
-				{
-					try
-					{
-						SafeDispose(ref xmppClient);
-
-						if (string.IsNullOrEmpty(XmppPasswordHashMethod))
-							xmppClient = new XmppClient(XmppHost, XmppPort, XmppUserName, XmppPasswordHash, "en", typeof(Program).GetTypeInfo().Assembly);
-						else
-							xmppClient = new XmppClient(XmppHost, XmppPort, XmppUserName, XmppPasswordHash, XmppPasswordHashMethod, "en", typeof(Program).GetTypeInfo().Assembly);
-
-						xmppClient.AllowCramMD5 = false;
-						xmppClient.AllowDigestMD5 = false;
-						xmppClient.AllowPlain = false;
-						xmppClient.AllowScramSHA1 = true;
-						xmppClient.AllowScramSHA256 = true;
-
-						if (string.IsNullOrEmpty(XmppApiKey) || string.IsNullOrEmpty(XmppApiSecret))
-							xmppClient.AllowRegistration();
-						else
-							xmppClient.AllowRegistration(XmppApiKey, XmppApiSecret);
-
-						xmppClient.OnStateChanged += (sender, State) =>
-						{
-							Log.Informational("Changing state: " + State.ToString());
-
-							switch (State)
-							{
-								case XmppState.Connected:
-									Log.Informational("Connected as " + xmppClient.FullJID);
-									break;
-							}
-
-							return Task.CompletedTask;
-						};
-
-						xmppClient.OnConnectionError += (sender, ex) =>
-						{
-							Log.Error(ex);
-							return Task.CompletedTask;
-						};
-
-						Log.Informational("Connecting to " + xmppClient.Host + ":" + xmppClient.Port.ToString());
-						await xmppClient.Connect();
-
-						switch (await xmppClient.WaitStateAsync(10000, XmppState.Connected, XmppState.Error, XmppState.Offline))
-						{
-							case 0: // Connected
-								break;
-
-							case 1: // Error
-								throw new Exception("An error occurred when trying to connect. Please revise parameters and try again.");
-
-							case 2: // Offline
-							default:
-								throw new Exception("Unable to connect to host. Please revise parameters and try again.");
-						}
-
-						if (Updated)
-						{
-							await RuntimeSettings.SetAsync("XmppHost", XmppHost = xmppClient.Host);
-							await RuntimeSettings.SetAsync("XmppPort", XmppPort = xmppClient.Port);
-							await RuntimeSettings.SetAsync("XmppUserName", XmppUserName = xmppClient.UserName);
-							await RuntimeSettings.SetAsync("XmppPasswordHash", XmppPasswordHash = xmppClient.PasswordHash);
-							await RuntimeSettings.SetAsync("XmppPasswordHashMethod", XmppPasswordHashMethod = xmppClient.PasswordHashMethod);
-
-							// Note: Do not store API Key and API Secret
-						}
-
-						break;
-					}
-					catch (Exception ex)
-					{
-						Log.Error("Unable to connect to XMPP Network. The following error was reported:\r\n\r\n" + ex.Message);
-					}
-				}
+				#region Setting up database
 
 				if (RunningInsideContainer())
+					appDataFolder = "/var/lib/IoT Gateway/";
+				else
+					appDataFolder = Environment.CurrentDirectory;
+
+				Log.Informational("Application data folder: " + appDataFolder);
+
+				db = await FilesProvider.CreateAsync(Path.Combine(appDataFolder, "Data"),
+						"Default", 8192, 1000, 8192, Encoding.UTF8, 10000);
+				await db.RepairIfInproperShutdown(null);
+
+				Database.Register(db);
+
+				#region Device ID
+
+				deviceId = await RuntimeSettings.GetAsync("DeviceId", string.Empty);
+				if (string.IsNullOrEmpty(deviceId))
 				{
-					Log.Error("XMPP connection parameters not provided. Cannot continue.");
-					return;
+					deviceId = Guid.NewGuid().ToString().Replace("-", string.Empty);
+					await RuntimeSettings.SetAsync("DeviceId", deviceId);
 				}
 
-				XmppHost = InputString("XMPP Broker", XmppHost);
-				XmppPort = InputString("Port", XmppPort);
-				XmppUserName = InputString("User Name", XmppUserName);
-				XmppPasswordHash = InputString("Password", "Leave blank to randomize password.", XmppPasswordHash);
-				if (string.IsNullOrEmpty(XmppPasswordHash))
-				{
-					using RandomNumberGenerator Rnd = RandomNumberGenerator.Create();
-					Bin = new byte[32];  // 256 random bits
+				Log.Informational("Device ID: " + deviceId);
 
-					Rnd.GetBytes(Bin);
-					XmppPasswordHash = Hashes.BinaryToString(Bin);
+				#endregion
+
+				#endregion
+
+				#region XMPP Connection
+
+				string XmppHost = await EnvironmentSettings.GetAsync("XMPP_HOST", "XmppHost", "lab.tagroot.io");
+				int XmppPort = (int)await EnvironmentSettings.GetAsync("XMPP_PORT", "XmppPort", 5222);
+				string XmppUserName = await EnvironmentSettings.GetAsync("XMPP_USERNAME", "XmppUserName", string.Empty);
+				string XmppPasswordHash = await EnvironmentSettings.GetAsync("XMPP_PASSWORD", "XmppPasswordHash", string.Empty);
+				string XmppPasswordHashMethod = await EnvironmentSettings.GetAsync("XMPP_PASSWORDHASHMETHOD", "XmppPasswordHashMethod", string.Empty);
+				string XmppApiKey = await EnvironmentSettings.GetAsync("XMPP_APIKEY", "XmppApiKey", string.Empty);
+				string XmppApiSecret = await EnvironmentSettings.GetAsync("XMPP_APISECRET", "XmppApiSecret", string.Empty);
+				bool Updated = false;
+				byte[] Bin;
+
+				while (true)
+				{
+					if (!string.IsNullOrEmpty(XmppHost) && !string.IsNullOrEmpty(XmppUserName) && !string.IsNullOrEmpty(XmppPasswordHash))
+					{
+						try
+						{
+							SafeDispose(ref xmppClient);
+
+							if (string.IsNullOrEmpty(XmppPasswordHashMethod))
+								xmppClient = new XmppClient(XmppHost, XmppPort, XmppUserName, XmppPasswordHash, "en", typeof(Program).GetTypeInfo().Assembly);
+							else
+								xmppClient = new XmppClient(XmppHost, XmppPort, XmppUserName, XmppPasswordHash, XmppPasswordHashMethod, "en", typeof(Program).GetTypeInfo().Assembly);
+
+							xmppClient.AllowCramMD5 = false;
+							xmppClient.AllowDigestMD5 = false;
+							xmppClient.AllowPlain = false;
+							xmppClient.AllowScramSHA1 = true;
+							xmppClient.AllowScramSHA256 = true;
+
+							if (string.IsNullOrEmpty(XmppApiKey) || string.IsNullOrEmpty(XmppApiSecret))
+								xmppClient.AllowRegistration();
+							else
+								xmppClient.AllowRegistration(XmppApiKey, XmppApiSecret);
+
+							xmppClient.OnStateChanged += (sender, State) =>
+							{
+								Log.Informational("Changing state: " + State.ToString());
+
+								switch (State)
+								{
+									case XmppState.Connected:
+										Log.Informational("Connected as " + xmppClient.FullJID);
+										break;
+								}
+
+								return Task.CompletedTask;
+							};
+
+							xmppClient.OnConnectionError += (sender, ex) =>
+							{
+								Log.Error(ex);
+								return Task.CompletedTask;
+							};
+
+							Log.Informational("Connecting to " + xmppClient.Host + ":" + xmppClient.Port.ToString());
+							await xmppClient.Connect();
+
+							switch (await xmppClient.WaitStateAsync(10000, XmppState.Connected, XmppState.Error, XmppState.Offline))
+							{
+								case 0: // Connected
+									break;
+
+								case 1: // Error
+									throw new Exception("An error occurred when trying to connect. Please revise parameters and try again.");
+
+								case 2: // Offline
+								default:
+									throw new Exception("Unable to connect to host. Please revise parameters and try again.");
+							}
+
+							if (Updated)
+							{
+								await RuntimeSettings.SetAsync("XmppHost", XmppHost = xmppClient.Host);
+								await RuntimeSettings.SetAsync("XmppPort", XmppPort = xmppClient.Port);
+								await RuntimeSettings.SetAsync("XmppUserName", XmppUserName = xmppClient.UserName);
+								await RuntimeSettings.SetAsync("XmppPasswordHash", XmppPasswordHash = xmppClient.PasswordHash);
+								await RuntimeSettings.SetAsync("XmppPasswordHashMethod", XmppPasswordHashMethod = xmppClient.PasswordHashMethod);
+
+								// Note: Do not store API Key and API Secret
+							}
+
+							break;
+						}
+						catch (Exception ex)
+						{
+							Log.Error("Unable to connect to XMPP Network. The following error was reported:\r\n\r\n" + ex.Message);
+						}
+					}
+
+					if (RunningInsideContainer())
+					{
+						Log.Error("XMPP connection parameters not provided. Cannot continue.");
+						return;
+					}
+
+					XmppHost = InputString("XMPP Broker", XmppHost);
+					XmppPort = InputString("Port", XmppPort);
+					XmppUserName = InputString("User Name", XmppUserName);
+					XmppPasswordHash = InputString("Password", "Leave blank to randomize password.", XmppPasswordHash);
+					if (string.IsNullOrEmpty(XmppPasswordHash))
+					{
+						using RandomNumberGenerator Rnd = RandomNumberGenerator.Create();
+						Bin = new byte[32];  // 256 random bits
+
+						Rnd.GetBytes(Bin);
+						XmppPasswordHash = Hashes.BinaryToString(Bin);
+					}
+
+					XmppPasswordHashMethod = string.Empty;
+					XmppApiKey = InputString("API Key", "Provide API Key to create account.", XmppApiKey);
+					XmppApiSecret = InputString("API Secret", "Provide API Secret to create account.", XmppApiSecret);
+					Updated = true;
 				}
 
-				XmppPasswordHashMethod = string.Empty;
-				XmppApiKey = InputString("API Key", "Provide API Key to create account.", XmppApiKey);
-				XmppApiSecret = InputString("API Secret", "Provide API Secret to create account.", XmppApiSecret);
-				Updated = true;
-			}
+				#endregion
 
-			#endregion
+				#region Basic XMPP events & features
 
-			#region Basic XMPP events & features
+				xmppClient.OnError += (Sender, ex) =>
+				{
+					Log.Error(ex);
+					return Task.CompletedTask;
+				};
 
-			xmppClient.OnError += (Sender, ex) =>
-			{
-				Log.Error(ex);
-				return Task.CompletedTask;
-			};
+				xmppClient.OnPasswordChanged += (Sender, e) =>
+				{
+					Log.Informational("Password changed.", xmppClient.BareJID);
+					return Task.CompletedTask;
+				};
 
-			xmppClient.OnPasswordChanged += (Sender, e) =>
-			{
-				Log.Informational("Password changed.", xmppClient.BareJID);
-				return Task.CompletedTask;
-			};
+				xmppClient.OnPresenceSubscribed += (Sender, e) =>
+				{
+					Log.Informational("Friendship request accepted.", xmppClient.BareJID, e.From);
+					return Task.CompletedTask;
+				};
 
-			xmppClient.OnPresenceSubscribed += (Sender, e) =>
-			{
-				Log.Informational("Friendship request accepted.", xmppClient.BareJID, e.From);
-				return Task.CompletedTask;
-			};
+				xmppClient.OnPresenceUnsubscribed += (Sender, e) =>
+				{
+					Log.Informational("Friendship removal accepted.", xmppClient.BareJID, e.From);
+					return Task.CompletedTask;
+				};
 
-			xmppClient.OnPresenceUnsubscribed += (Sender, e) =>
-			{
-				Log.Informational("Friendship removal accepted.", xmppClient.BareJID, e.From);
-				return Task.CompletedTask;
-			};
+				RegisterVCard();
 
-			RegisterVCard();
+				#endregion
 
-			#endregion
+				#region JWT Factory
 
-			#region JWT Factory
+				string JwtFactorySecret = await EnvironmentSettings.GetAsync("JWT_SECRET", "JwtSecret", string.Empty);
 
-			string JwtFactorySecret = await EnvironmentSettings.GetAsync("JWT_SECRET", "JwtSecret", string.Empty);
-
-			if (string.IsNullOrEmpty(JwtFactorySecret))
-			{
-				JwtFactorySecret = InputString("JWT Secret", "Leave blank to randomize secret.", JwtFactorySecret);
 				if (string.IsNullOrEmpty(JwtFactorySecret))
 				{
-					using RandomNumberGenerator Rnd = RandomNumberGenerator.Create();
-					Bin = new byte[32];  // 256 random bits
+					JwtFactorySecret = InputString("JWT Secret", "Leave blank to randomize secret.", JwtFactorySecret);
+					if (string.IsNullOrEmpty(JwtFactorySecret))
+					{
+						using RandomNumberGenerator Rnd = RandomNumberGenerator.Create();
+						Bin = new byte[32];  // 256 random bits
 
-					Rnd.GetBytes(Bin);
-					JwtFactorySecret = Convert.ToBase64String(Bin);
+						Rnd.GetBytes(Bin);
+						JwtFactorySecret = Convert.ToBase64String(Bin);
+					}
+
+					await RuntimeSettings.SetAsync("JwtSecret", JwtFactorySecret);
 				}
 
-				await RuntimeSettings.SetAsync("JwtSecret", JwtFactorySecret);
-			}
+				Bin = Encoding.UTF8.GetBytes(JwtFactorySecret);
 
-			Bin = Encoding.UTF8.GetBytes(JwtFactorySecret);
+				jwtFactory = JwtFactory.CreateHmacSha256(Bin);
+				Types.SetModuleParameter("JWT", jwtFactory);
 
-			jwtFactory = JwtFactory.CreateHmacSha256(Bin);
-			Types.SetModuleParameter("JWT", jwtFactory);
+				#endregion
 
-			#endregion
+				#region X.509 Certificate
 
-			#region X.509 Certificate
+				string CertificateFileName = await EnvironmentSettings.GetAsync("X509_FILENAME", "X509FileName", string.Empty);
+				string CertificatePassword = await EnvironmentSettings.GetAsync("X509_PASSWORD", "X509Password", string.Empty);
 
-			string CertificateFileName = await EnvironmentSettings.GetAsync("X509_FILENAME", "X509FileName", string.Empty);
-			string CertificatePassword = await EnvironmentSettings.GetAsync("X509_PASSWORD", "X509Password", string.Empty);
-
-			if (string.IsNullOrEmpty(CertificateFileName))
-			{
-				CertificateFileName = InputString("Certificate File Name", "Leave blank to not use certificate.", CertificateFileName);
 				if (string.IsNullOrEmpty(CertificateFileName))
-					CertificateFileName = "-";
-				else
 				{
-					CertificatePassword = InputString("Certificate Password", string.Empty, CertificatePassword);
-
-					certificate = new X509Certificate2(CertificateFileName, CertificatePassword);
-				}
-
-				await RuntimeSettings.SetAsync("X509FileName", CertificateFileName);
-
-				if (certificate is not null)
-				{
-					await RuntimeSettings.SetAsync("X509Certificate", Convert.ToBase64String(certificate.GetRawCertData()));
-					await RuntimeSettings.SetAsync("X509Password", CertificatePassword);
-				}
-			}
-			else if (CertificateFileName != "-")
-			{
-				string Base64 = await RuntimeSettings.GetAsync("X509Certificate", string.Empty);
-				if (!string.IsNullOrEmpty(Base64))
-				{
-					Bin = Convert.FromBase64String(Base64);
-					CertificatePassword = await RuntimeSettings.GetAsync("X509Password", CertificatePassword);
-
-					certificate = new X509Certificate2(Bin, CertificatePassword);
-				}
-				else
-					certificate = new X509Certificate2(CertificateFileName, CertificatePassword);
-			}
-
-			if (certificate is not null)
-				Types.SetModuleParameter("X509", certificate);
-
-			#endregion
-
-			#region Login Auditor
-
-			loginAuditor = new LoginAuditor("Login Auditor",
-				new LoginInterval(5, TimeSpan.FromHours(1)),    // Maximum 5 failed login attempts in an hour
-				new LoginInterval(2, TimeSpan.FromDays(1)),     // Maximum 2x5 failed login attempts in a day
-				new LoginInterval(2, TimeSpan.FromDays(7)),     // Maximum 2x2x5 failed login attempts in a week
-				new LoginInterval(2, TimeSpan.MaxValue));       // Maximum 2x2x2x5 failed login attempts in total, then blocked.
-
-			Log.Register(loginAuditor);
-
-			nonceValues = await Database.GetDictionary("Nonces");
-
-			#endregion
-
-			#region Local Web Server
-
-			string RootFolder = Path.Combine(Environment.CurrentDirectory, "Root");
-			Types.SetModuleParameter("Root", RootFolder);
-
-			long HttpPort = await EnvironmentSettings.GetAsync("HTTP_PORT", "HttpPort", -1);
-			if (HttpPort <= 0 || HttpPort > ushort.MaxValue)
-			{
-				while (HttpPort <= 0 || HttpPort > ushort.MaxValue)
-					HttpPort = InputString("HTTP Port", HttpServer.DefaultHttpPort);
-
-				await RuntimeSettings.SetAsync("HttpPort", HttpPort);
-			}
-
-			if (certificate is null)
-				httpServer = new((int)HttpPort);
-			else
-			{
-				long HttpsPort = await EnvironmentSettings.GetAsync("HTTPS_PORT", "HttpsPort", -1);
-				if (HttpsPort <= 0 || HttpsPort > ushort.MaxValue || HttpsPort == HttpPort)
-				{
-					while (HttpsPort <= 0 || HttpsPort > ushort.MaxValue || HttpsPort == HttpPort)
-						HttpsPort = await EnvironmentSettings.GetAsync("HTTPS_PORT", "HttpsPort", -1);
-
-					await RuntimeSettings.SetAsync("HttpsPort", HttpsPort);
-				}
-
-				httpServer = new([(int)HttpPort], [(int)HttpsPort], certificate,
-					true, ClientCertificates.Optional, false, [], true);
-
-				loginAuditor.Domain = BinaryTcpClient.GetDomainFromSubject(certificate.Subject);
-			}
-
-			httpServer.LoginAuditor = loginAuditor;
-
-			Types.SetModuleParameter("HTTP", httpServer);
-
-			scheduler = new Scheduler();
-			Types.SetModuleParameter("Scheduler", scheduler);
-
-			httpServer.Register(new HttpFolderResource(string.Empty, RootFolder, false, false, true, true));
-
-			httpServer.Register("/", async (req, resp) =>
-			{
-				await resp.SendResponse(new TemporaryRedirectException("/Index.md"));
-			});
-
-			httpServer.Register("/Login", async (req, resp) =>
-			{
-				string? Message = null; SafeDispose(ref nonceValues);
-				string? Jwt = null;
-				bool Ok = false;
-
-				if (!req.HasData)
-					Message = "Missing payload.";
-				else
-				{
-					ContentResponse Content = await req.DecodeDataAsync();
-					if (Content.HasError)
-						Message = Content.Error.Message;
+					CertificateFileName = InputString("Certificate File Name", "Leave blank to not use certificate.", CertificateFileName);
+					if (string.IsNullOrEmpty(CertificateFileName))
+						CertificateFileName = "-";
 					else
 					{
-						if (Content.Decoded is not Dictionary<string, object> Request ||
-							!Request.TryGetValue("UserName", out object? Obj) ||
-							Obj is not string UserName ||
-							!Request.TryGetValue("PasswordHash", out Obj) ||
-							Obj is not string PasswordHash ||
-							!Request.TryGetValue("Nonce", out Obj) ||
-							Obj is not string Nonce)
-						{
-							Message = "Invalid payload.";
-						}
+						CertificatePassword = InputString("Certificate Password", string.Empty, CertificatePassword);
+
+						certificate = new X509Certificate2(CertificateFileName, CertificatePassword);
+					}
+
+					await RuntimeSettings.SetAsync("X509FileName", CertificateFileName);
+
+					if (certificate is not null)
+					{
+						await RuntimeSettings.SetAsync("X509Certificate", Convert.ToBase64String(certificate.GetRawCertData()));
+						await RuntimeSettings.SetAsync("X509Password", CertificatePassword);
+					}
+				}
+				else if (CertificateFileName != "-")
+				{
+					string Base64 = await RuntimeSettings.GetAsync("X509Certificate", string.Empty);
+					if (!string.IsNullOrEmpty(Base64))
+					{
+						Bin = Convert.FromBase64String(Base64);
+						CertificatePassword = await RuntimeSettings.GetAsync("X509Password", CertificatePassword);
+
+						certificate = new X509Certificate2(Bin, CertificatePassword);
+					}
+					else
+						certificate = new X509Certificate2(CertificateFileName, CertificatePassword);
+				}
+
+				if (certificate is null)
+					domain = deviceId;
+				else
+				{
+					Types.SetModuleParameter("X509", certificate);
+					domain = BinaryTcpClient.GetDomainFromSubject(certificate.Subject);
+				}
+
+				#endregion
+
+				#region Login Auditor
+
+				loginAuditor = new LoginAuditor("Login Auditor",
+					new LoginInterval(5, TimeSpan.FromHours(1)),    // Maximum 5 failed login attempts in an hour
+					new LoginInterval(2, TimeSpan.FromDays(1)),     // Maximum 2x5 failed login attempts in a day
+					new LoginInterval(2, TimeSpan.FromDays(7)),     // Maximum 2x2x5 failed login attempts in a week
+					new LoginInterval(2, TimeSpan.MaxValue));       // Maximum 2x2x2x5 failed login attempts in total, then blocked.
+
+				Log.Register(loginAuditor);
+
+				nonceValues = await Database.GetDictionary("Nonces");
+
+				Users.Register((UserName, Password) =>
+				{
+					Waher.Security.SHA3.SHA3_256 H = new();
+					return H.ComputeVariable(Encoding.UTF8.GetBytes(UserName + ":" + domain + ":" + Password));
+				}, "DIGEST-SHA3-256", loginAuditor, domain, true);
+
+				#endregion
+
+				#region Local Web Server
+
+				string RootFolder = Path.Combine(Environment.CurrentDirectory, "Root");
+				Types.SetModuleParameter("Root", RootFolder);
+
+				long HttpPort = await EnvironmentSettings.GetAsync("HTTP_PORT", "HttpPort", -1);
+				if (HttpPort <= 0 || HttpPort > ushort.MaxValue)
+				{
+					while (HttpPort <= 0 || HttpPort > ushort.MaxValue)
+						HttpPort = InputString("HTTP Port", HttpServer.DefaultHttpPort);
+
+					await RuntimeSettings.SetAsync("HttpPort", HttpPort);
+				}
+
+				if (certificate is null)
+					httpServer = new((int)HttpPort);
+				else
+				{
+					long HttpsPort = await EnvironmentSettings.GetAsync("HTTPS_PORT", "HttpsPort", -1);
+					if (HttpsPort <= 0 || HttpsPort > ushort.MaxValue || HttpsPort == HttpPort)
+					{
+						while (HttpsPort <= 0 || HttpsPort > ushort.MaxValue || HttpsPort == HttpPort)
+							HttpsPort = await EnvironmentSettings.GetAsync("HTTPS_PORT", "HttpsPort", -1);
+
+						await RuntimeSettings.SetAsync("HttpsPort", HttpsPort);
+					}
+
+					httpServer = new([(int)HttpPort], [(int)HttpsPort], certificate,
+						true, ClientCertificates.Optional, false, [], true);
+
+					loginAuditor.Domain = domain;
+				}
+
+				httpServer.LoginAuditor = loginAuditor;
+
+				Types.SetModuleParameter("HTTP", httpServer);
+
+				scheduler = new Scheduler();
+				Types.SetModuleParameter("Scheduler", scheduler);
+
+				httpServer.Register(new HttpFolderResource(string.Empty, RootFolder, false, false, true, true));
+
+				httpServer.Register("/", async (req, resp) =>
+				{
+					await resp.SendResponse(new TemporaryRedirectException("/Index.md"));
+				});
+
+				httpServer.Register("/Login", null, async (req, resp) =>
+				{
+					string? Message = null;
+					string? Jwt = null;
+					bool Ok = false;
+
+					if (!req.HasData)
+						Message = "Missing payload.";
+					else
+					{
+						ContentResponse Content = await req.DecodeDataAsync();
+						if (Content.HasError)
+							Message = Content.Error.Message;
 						else
 						{
-							if (await nonceValues!.ContainsKeyAsync(Nonce))
-								Message = "Nonce already used.";
+							if (Content.Decoded is not Dictionary<string, object> Request ||
+								!Request.TryGetValue("UserName", out object? Obj) ||
+								Obj is not string UserName ||
+								!Request.TryGetValue("PasswordHash", out Obj) ||
+								Obj is not string PasswordHash ||
+								!Request.TryGetValue("Nonce", out Obj) ||
+								Obj is not string Nonce)
+							{
+								Message = "Invalid payload.";
+							}
 							else
 							{
-								LoginResult Result = await Users.Login(UserName, PasswordHash, Nonce, req.RemoteEndPoint, "HTTP");
-
-								switch (Result.Type)
+								if (await nonceValues!.ContainsKeyAsync(Nonce))
+									Message = "Nonce already used.";
+								else
 								{
-									case LoginResultType.PermanentlyBlocked:
-										Message = "Permanently blocked.";
-										break;
+									LoginResult Result = await Users.Login(UserName, PasswordHash, Nonce, req.RemoteEndPoint, "HTTP");
 
-									case LoginResultType.TemporarilyBlocked:
-										Message = "Temporarily blocked. Try again after " + Result.Next.ToString();
-										break;
+									switch (Result.Type)
+									{
+										case LoginResultType.PermanentlyBlocked:
+											Message = "Permanently blocked.";
+											break;
 
-									case LoginResultType.InvalidCredentials:
-										Message = "Invalid user name or password.";
-										break;
+										case LoginResultType.TemporarilyBlocked:
+											Message = "Temporarily blocked. Try again after " + Result.Next.ToString();
+											break;
 
-									case LoginResultType.NoPassword:
-										Message = "No password provided.";
-										break;
+										case LoginResultType.InvalidCredentials:
+											Message = "Invalid user name or password.";
+											break;
 
-									case LoginResultType.Success:
-										Message = "Login successful.";
-										Ok = true;
-										await nonceValues.AddAsync(Nonce, true);
+										case LoginResultType.NoPassword:
+											Message = "No password provided.";
+											break;
 
-										Jwt = await Result.User.CreateToken(jwtFactory, req.Encrypted);
-										break;
+										case LoginResultType.Success:
+											Message = "Login successful.";
+											Ok = true;
+											await nonceValues.AddAsync(Nonce, true);
 
-									default:
-										Message = "An error occurred during login. Please try again later.";
-										break;
+											Jwt = await Result.User.CreateToken(jwtFactory, req.Encrypted);
+
+											if (req.Session is not null)
+												req.Session["User"] = Result.User;
+											break;
+
+										default:
+											Message = "An error occurred during login. Please try again later.";
+											break;
+									}
 								}
 							}
 						}
 					}
-				}
 
-				await resp.Return(new Dictionary<string, object?>()
-				{
-					{ "Ok", Ok },
-					{ "Message", Message },
-					{ "Jwt", Jwt }
-				});
-			});
-
-			await Types.StartAllModules(60000);     // HttpModule requires the Web Server to be active
-			await HttpModule.CheckLocalWebServerNode();
-
-			// Protecting Markdown resources:
-			if (!MarkdownCodec.IsRawEncodingAllowedLocked)
-				MarkdownCodec.AllowRawEncoding(false, true);
-			HttpFolderResource.ProtectContentType(MarkdownCodec.ContentType);
-
-			// Protecting web-script resources:
-			if (!WsCodec.IsRawEncodingAllowedLocked)
-				WsCodec.AllowRawEncoding(false, true);
-			HttpFolderResource.ProtectContentType(WsCodec.ContentType);
-
-			#endregion
-
-			#region Users
-
-			int UserCount = (int)await EnvironmentSettings.GetAsync("USER_COUNT", "UserCount", 0);
-			int UserNr;
-
-			for (UserNr = 1; UserNr <= UserCount; UserNr++)
-			{
-				string UserName = await EnvironmentSettings.GetAsync("USER_" + UserNr.ToString() + "_NAME", "User" + UserNr.ToString() + "_Name", string.Empty);
-				string Password = await EnvironmentSettings.GetAsync("USER_" + UserNr.ToString() + "_PASSWORD", "User" + UserNr.ToString() + "_PasswordHash", string.Empty);
-				string Privilege = await EnvironmentSettings.GetAsync("USER_" + UserNr.ToString() + "_PRIVILEGE", "User" + UserNr.ToString() + "_Privilege", "Admin.SensorData.Post");
-
-				if (!string.IsNullOrEmpty(UserName) &&
-					!string.IsNullOrEmpty(Password) &&
-					!string.IsNullOrEmpty(Privilege))
-				{
-					Role Role = new()
+					await resp.Return(new Dictionary<string, object?>()
 					{
-						Id = "User" + UserNr.ToString() + "Role",
-						Privileges = [new PrivilegePattern(Privilege, true)]
+						{ "Ok", Ok },
+						{ "Message", Message },
+						{ "Jwt", Jwt }
+					});
+				}, true, false, true);
+
+				await Types.StartAllModules(60000);     // HttpModule requires the Web Server to be active
+				await HttpModule.CheckLocalWebServerNode();
+
+				// Protecting Markdown resources:
+				if (!MarkdownCodec.IsRawEncodingAllowedLocked)
+					MarkdownCodec.AllowRawEncoding(false, true);
+				HttpFolderResource.ProtectContentType(MarkdownCodec.ContentType);
+
+				// Protecting web-script resources:
+				if (!WsCodec.IsRawEncodingAllowedLocked)
+					WsCodec.AllowRawEncoding(false, true);
+				HttpFolderResource.ProtectContentType(WsCodec.ContentType);
+
+				#endregion
+
+				#region Administrator
+
+				string UserName;
+				string Password;
+				string Privilege;
+				User User;
+				Role Role;
+				bool AdminCreated = false;
+
+				if (await Database.FindFirstIgnoreRest<Role>(new FilterFieldEqualTo("Id", "Administrator")) is null)
+				{
+					UserName = await EnvironmentSettings.GetAsync("ADMIN_NAME", "Administrator_Name", string.Empty);
+					Password = await EnvironmentSettings.GetAsync("ADMIN_PASSWORD", "Adminitrator_Password", string.Empty);
+
+					while (string.IsNullOrEmpty(UserName) || string.IsNullOrEmpty(Password))
+					{
+						UserName = InputString("Administrator user name", "Must not be empty", UserName);
+						Password = InputString("Administrator password", "Must not be empty", Password);
+					}
+
+					Role = new()
+					{
+						Id = "Administrator",
+						Privileges = [new PrivilegePattern(".*", true)]
 					};
 
 					await Database.Insert(Role);
 
-					User User = new()
+					User = new()
 					{
 						UserName = UserName,
 						PasswordHash = Convert.ToBase64String(Users.ComputeHash(UserName, Password)),
@@ -542,619 +567,595 @@ internal class Program
 
 					await Database.Insert(User);
 
-					Log.Informational("User added.", UserName);
+					Log.Informational("Administrator added.", UserName);
+					AdminCreated = true;
 				}
-			}
 
-			if (await Database.FindFirstIgnoreRest<User>() is null)
-			{
-				UserNr = 1;
+				#endregion
 
-				do
+				#region Users
+
+				int UserCount = (int)await EnvironmentSettings.GetAsync("USER_COUNT", "UserCount", 0);
+				int UserNr;
+
+				for (UserNr = 1; UserNr <= UserCount; UserNr++)
 				{
-					string UserName = InputString("User name " + UserNr.ToString(), "Must not be empty.", string.Empty);
-					if (!string.IsNullOrEmpty(UserName))
+					UserName = await EnvironmentSettings.GetAsync("USER_" + UserNr.ToString() + "_NAME", "User" + UserNr.ToString() + "_Name", string.Empty);
+					Password = await EnvironmentSettings.GetAsync("USER_" + UserNr.ToString() + "_PASSWORD", "User" + UserNr.ToString() + "_Password", string.Empty);
+					Privilege = await EnvironmentSettings.GetAsync("USER_" + UserNr.ToString() + "_PRIVILEGE", "User" + UserNr.ToString() + "_Privilege", "Admin.SensorData.Post");
+
+					if (!string.IsNullOrEmpty(UserName) &&
+						!string.IsNullOrEmpty(Password) &&
+						!string.IsNullOrEmpty(Privilege))
 					{
-						string Password = InputString("Password " + UserNr.ToString(), "Must not be empty.", string.Empty);
-
-						if (!string.IsNullOrEmpty(Password))
+						Role = new()
 						{
-							string Privilege = InputString("Privileges " + UserNr.ToString(), "Regular expression", "Admin.SensorData.Post");
+							Id = "User" + UserNr.ToString() + "Role",
+							Privileges = [new PrivilegePattern(Privilege, true)]
+						};
 
-							if (!string.IsNullOrEmpty(Privilege))
+						await Database.Insert(Role);
+
+						User = new()
+						{
+							UserName = UserName,
+							PasswordHash = Convert.ToBase64String(Users.ComputeHash(UserName, Password)),
+							RoleIds = [Role.Id]
+						};
+
+						await Database.Insert(User);
+
+						Log.Informational("User added.", UserName);
+					}
+				}
+
+				if (AdminCreated)
+				{
+					UserNr = 1;
+
+					do
+					{
+						UserName = InputString("User name " + UserNr.ToString(), "Must not be empty.", string.Empty);
+						if (!string.IsNullOrEmpty(UserName))
+						{
+							Password = InputString("Password " + UserNr.ToString(), "Must not be empty.", string.Empty);
+
+							if (!string.IsNullOrEmpty(Password))
 							{
-								Role Role = new()
+								Privilege = InputString("Privileges " + UserNr.ToString(), "Regular expression", "Admin.SensorData.Post");
+
+								if (!string.IsNullOrEmpty(Privilege))
 								{
-									Id = "User" + UserNr.ToString() + "Role",
-									Privileges = [new PrivilegePattern(Privilege, true)]
-								};
+									Role = new()
+									{
+										Id = "User" + UserNr.ToString() + "Role",
+										Privileges = [new PrivilegePattern(Privilege, true)]
+									};
 
-								await Database.Insert(Role);
+									await Database.Insert(Role);
 
-								User User = new()
-								{
-									UserName = UserName,
-									PasswordHash = Convert.ToBase64String(Users.ComputeHash(UserName, Password)),
-									RoleIds = [Role.Id]
-								};
+									User = new()
+									{
+										UserName = UserName,
+										PasswordHash = Convert.ToBase64String(Users.ComputeHash(UserName, Password)),
+										RoleIds = [Role.Id]
+									};
 
-								await Database.Insert(User);
+									await Database.Insert(User);
 
-								Log.Informational("User added.", UserName);
-								UserNr++;
+									Log.Informational("User added.", UserName);
+									UserNr++;
+								}
+								else
+									Log.Warning("Discarding user with empty privilege.");
 							}
 							else
-								Log.Warning("Discarding user with empty privilege.");
+								Log.Warning("Discarding user with empty password.");
 						}
 						else
-							Log.Warning("Discarding user with empty password.");
-					}
-					else
-						Log.Warning("Discarding user with empty user name.");
+							Log.Warning("Discarding user with empty user name.");
 
-					if (UserNr > 1)
+						if (UserNr > 1)
+						{
+							if (!InputString("Do you want to add another user?", true))
+								UserNr = 0;
+						}
+					}
+					while (UserNr > 0);
+				}
+
+				#endregion
+
+				#region Configuring Decision Support & Provisioning
+
+				thingRegistryJid = await RuntimeSettings.GetAsync("ThingRegistry.JID", string.Empty);
+				provisioningJid = await RuntimeSettings.GetAsync("ProvisioningServer.JID", thingRegistryJid);
+				logJid = await RuntimeSettings.GetAsync("EventServer.JID", string.Empty);
+				ownerJid = await RuntimeSettings.GetAsync("ThingRegistry.Owner", string.Empty);
+
+				if (string.IsNullOrEmpty(thingRegistryJid) ||
+					string.IsNullOrEmpty(provisioningJid) ||
+					string.IsNullOrEmpty(logJid))
+				{
+					Log.Informational("Searching for Thing Registry and Provisioning Server.");
+
+					ServiceItemsDiscoveryEventArgs e = await xmppClient.ServiceItemsDiscoveryAsync(xmppClient.Domain);
+					foreach (Item Item in e.Items)
 					{
-						if (!InputString("Do you want to add another user?", true))
-							UserNr = 0;
+						ServiceDiscoveryEventArgs e2 = await xmppClient.ServiceDiscoveryAsync(Item.JID);
+
+						try
+						{
+							if (e2.HasAnyFeature(ProvisioningClient.NamespacesProvisioningDevice))
+							{
+								await RuntimeSettings.SetAsync("ProvisioningServer.JID", provisioningJid = Item.JID);
+								Log.Informational("Provisioning server found.", provisioningJid);
+							}
+
+							if (e2.HasAnyFeature(ThingRegistryClient.NamespacesDiscovery))
+							{
+								await RuntimeSettings.SetAsync("ThingRegistry.JID", thingRegistryJid = Item.JID);
+								Log.Informational("Thing registry found.", thingRegistryJid);
+							}
+
+							if (e2.HasAnyFeature(XmppEventSink.NamespaceEventLogging))
+							{
+								await RuntimeSettings.SetAsync("EventServer.JID", logJid = Item.JID);
+								Log.Informational("Event Server found.", logJid);
+							}
+						}
+						catch (Exception ex)
+						{
+							Log.Exception(ex);
+						}
 					}
 				}
-				while (UserNr > 0);
-			}
 
-			#endregion
-
-			#region Configuring Decision Support & Provisioning
-
-			thingRegistryJid = await RuntimeSettings.GetAsync("ThingRegistry.JID", string.Empty);
-			provisioningJid = await RuntimeSettings.GetAsync("ProvisioningServer.JID", thingRegistryJid);
-			logJid = await RuntimeSettings.GetAsync("EventServer.JID", string.Empty);
-			ownerJid = await RuntimeSettings.GetAsync("ThingRegistry.Owner", string.Empty);
-
-			if (string.IsNullOrEmpty(thingRegistryJid) ||
-				string.IsNullOrEmpty(provisioningJid) ||
-				string.IsNullOrEmpty(logJid))
-			{
-				Log.Informational("Searching for Thing Registry and Provisioning Server.");
-
-				ServiceItemsDiscoveryEventArgs e = await xmppClient.ServiceItemsDiscoveryAsync(xmppClient.Domain);
-				foreach (Item Item in e.Items)
+				if (!string.IsNullOrEmpty(logJid))
 				{
-					ServiceDiscoveryEventArgs e2 = await xmppClient.ServiceDiscoveryAsync(Item.JID);
-
-					try
-					{
-						if (e2.HasAnyFeature(ProvisioningClient.NamespacesProvisioningDevice))
-						{
-							await RuntimeSettings.SetAsync("ProvisioningServer.JID", provisioningJid = Item.JID);
-							Log.Informational("Provisioning server found.", provisioningJid);
-						}
-
-						if (e2.HasAnyFeature(ThingRegistryClient.NamespacesDiscovery))
-						{
-							await RuntimeSettings.SetAsync("ThingRegistry.JID", thingRegistryJid = Item.JID);
-							Log.Informational("Thing registry found.", thingRegistryJid);
-						}
-
-						if (e2.HasAnyFeature(XmppEventSink.NamespaceEventLogging))
-						{
-							await RuntimeSettings.SetAsync("EventServer.JID", logJid = Item.JID);
-							Log.Informational("Event Server found.", logJid);
-						}
-					}
-					catch (Exception ex)
-					{
-						Log.Exception(ex);
-					}
+					Log.Register(new EventFilter("XMPP Event Filter",
+						new XmppEventSink("XMPP Event Sink", xmppClient, logJid, false),
+						EventType.Critical));
 				}
-			}
 
-			if (!string.IsNullOrEmpty(logJid))
-			{
-				Log.Register(new EventFilter("XMPP Event Filter",
-					new XmppEventSink("XMPP Event Sink", xmppClient, logJid, false),
-					EventType.Critical));
-			}
-
-			if (!string.IsNullOrEmpty(provisioningJid))
-			{
-				provisioningClient = new ProvisioningClient(xmppClient, provisioningJid, ownerJid);
-
-				provisioningClient.CacheCleared += (sender, e) =>
+				if (!string.IsNullOrEmpty(provisioningJid))
 				{
-					Log.Informational("Rule cache cleared.");
-					return Task.CompletedTask;
-				};
-			}
+					provisioningClient = new ProvisioningClient(xmppClient, provisioningJid, ownerJid);
 
-			if (!string.IsNullOrEmpty(thingRegistryJid))
-			{
-				registryClient = new ThingRegistryClient(xmppClient, thingRegistryJid);
+					provisioningClient.CacheCleared += (sender, e) =>
+					{
+						Log.Informational("Rule cache cleared.");
+						return Task.CompletedTask;
+					};
+				}
 
-				registryClient.Claimed += async (sender, e) =>
+				if (!string.IsNullOrEmpty(thingRegistryJid))
 				{
-					try
+					registryClient = new ThingRegistryClient(xmppClient, thingRegistryJid);
+
+					registryClient.Claimed += async (sender, e) =>
 					{
-						Log.Notice("Owner claimed device.", string.Empty, e.JID);
+						try
+						{
+							Log.Notice("Owner claimed device.", string.Empty, e.JID);
 
-						await RuntimeSettings.SetAsync("ThingRegistry.Owner", ownerJid = e.JID);
-						await RuntimeSettings.SetAsync("ThingRegistry.Key", string.Empty);
+							await RuntimeSettings.SetAsync("ThingRegistry.Owner", ownerJid = e.JID);
+							await RuntimeSettings.SetAsync("ThingRegistry.Key", string.Empty);
 
-						Reregister();
-					}
-					catch (Exception ex)
+							Reregister();
+						}
+						catch (Exception ex)
+						{
+							Log.Exception(ex);
+						}
+					};
+
+					registryClient.Disowned += async (sender, e) =>
 					{
-						Log.Exception(ex);
-					}
-				};
+						try
+						{
+							Log.Notice("Owner disowned device.", string.Empty, ownerJid);
 
-				registryClient.Disowned += async (sender, e) =>
+							await RuntimeSettings.SetAsync("ThingRegistry.Owner", ownerJid = string.Empty);
+
+							Reregister();
+						}
+						catch (Exception ex)
+						{
+							Log.Exception(ex);
+						}
+					};
+				}
+
+				await RegisterDevice();
+
+				#endregion
+
+				await SetupConcentratorServer();
+				SetupChatServer();
+
+				Log.Informational("Initialization complete. Press Ctrl+C to exit.");
+
+				bool Running = true;
+
+				Console.CancelKeyPress += (_, e) =>
 				{
-					try
-					{
-						Log.Notice("Owner disowned device.", string.Empty, ownerJid);
-
-						await RuntimeSettings.SetAsync("ThingRegistry.Owner", ownerJid = string.Empty);
-
-						Reregister();
-					}
-					catch (Exception ex)
-					{
-						Log.Exception(ex);
-					}
+					Running = false;
+					e.Cancel = true;
 				};
+
+				while (Running)
+					await Task.Delay(1000);
 			}
-
-			await RegisterDevice();
-
-			#endregion
-
-			await SetupConcentratorServer();
-			SetupChatServer();
-
-			Log.Informational("Initialization complete. Press Ctrl+C to exit.");
-
-			bool Running = true;
-
-			Console.CancelKeyPress += (_, e) =>
+			catch (Exception ex)
 			{
-				Running = false;
-				e.Cancel = true;
-			};
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.Out.WriteLine(ex.Message);
+			}
+			finally
+			{
+				//SafeDispose(ref pepClient);
+				SafeDispose(ref chatServer);
+				SafeDispose(ref bobClient);
+				SafeDispose(ref concentratorServer);
+				SafeDispose(ref xmppClient);
+				SafeDispose(ref httpServer);
+				SafeDispose(ref scheduler);
+				SafeDispose(ref jwtFactory);
+				SafeDispose(ref loginAuditor);
 
-			while (Running)
-				await Task.Delay(1000);
+				await Log.TerminateAsync();
+
+				await Types.StopAllModules();
+			}
 		}
-		catch (Exception ex)
+
+		private static void SafeDispose<T>(ref T? Object)
+			where T : IDisposable
 		{
-			Console.ForegroundColor = ConsoleColor.Red;
-			Console.Out.WriteLine(ex.Message);
+			try
+			{
+				Object?.Dispose();
+				Object = default;
+			}
+			catch (Exception ex)
+			{
+				Log.Exception(ex);
+			}
 		}
-		finally
+
+		#region Script interface
+
+		public static string Domain => domain;
+
+		public static async Task<string> CreateNonce()
 		{
-			//SafeDispose(ref pepClient);
-			SafeDispose(ref chatServer);
-			SafeDispose(ref bobClient);
-			SafeDispose(ref concentratorServer);
-			SafeDispose(ref xmppClient);
-			SafeDispose(ref httpServer);
-			SafeDispose(ref scheduler);
-			SafeDispose(ref jwtFactory);
-			SafeDispose(ref loginAuditor);
+			using RandomNumberGenerator Rnd = RandomNumberGenerator.Create();
+			byte[] Bin = new byte[32];
+			string Nonce;
 
-			await Log.TerminateAsync();
+			do
+			{
+				Rnd.GetBytes(Bin);
+				Nonce = Convert.ToBase64String(Bin);
+			}
+			while (await nonceValues!.ContainsKeyAsync(Nonce));
 
-			await Types.StopAllModules();
+			return Nonce;
 		}
-	}
 
-	private static void SafeDispose<T>(ref T? Object)
-		where T : IDisposable
-	{
-		try
+		#endregion
+
+		#region Console Input
+
+		private static bool RunningInsideContainer()
 		{
-			Object?.Dispose();
-			Object = default;
+			return RuntimeInformation.IsOSPlatform(OSPlatform.Linux) &&
+				Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
 		}
-		catch (Exception ex)
+
+		private static int InputString(string Prompt, int DefaultValue)
 		{
-			Log.Exception(ex);
+			return InputString(Prompt, string.Empty, DefaultValue);
 		}
-	}
 
-	#region Console Input
-
-	private static bool RunningInsideContainer()
-	{
-		return RuntimeInformation.IsOSPlatform(OSPlatform.Linux) &&
-			Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
-	}
-
-	private static int InputString(string Prompt, int DefaultValue)
-	{
-		return InputString(Prompt, string.Empty, DefaultValue);
-	}
-
-	private static int InputString(string Prompt, string Comment, int DefaultValue)
-	{
-		while (true)
+		private static int InputString(string Prompt, string Comment, int DefaultValue)
 		{
-			string s = InputString(Prompt, Comment, DefaultValue.ToString());
-			if (int.TryParse(s, out int Result))
-				return Result;
+			while (true)
+			{
+				string s = InputString(Prompt, Comment, DefaultValue.ToString());
+				if (int.TryParse(s, out int Result))
+					return Result;
 
-			Log.Error("Input must be an integer.");
+				Log.Error("Input must be an integer.");
+			}
 		}
-	}
 
-	private static bool InputString(string Prompt, bool DefaultValue)
-	{
-		return InputString(Prompt, string.Empty, DefaultValue);
-	}
-
-	private static bool InputString(string Prompt, string Comment, bool DefaultValue)
-	{
-		while (true)
+		private static bool InputString(string Prompt, bool DefaultValue)
 		{
-			string s = InputString(Prompt, Comment, DefaultValue.ToString());
-			if (CommonTypes.TryParse(s, out bool Result))
-				return Result;
-
-			Log.Error("Input must be a Boolean value.");
+			return InputString(Prompt, string.Empty, DefaultValue);
 		}
-	}
 
-	private static string InputString(string Prompt, string DefaultValue)
-	{
-		return InputString(Prompt, string.Empty, DefaultValue);
-	}
-
-	private static string InputString(string Prompt, string Comment, string DefaultValue)
-	{
-		Console.ForegroundColor = ConsoleColor.White;
-		Console.Out.Write(Prompt);
-		Console.Out.WriteLine(":");
-
-		if (!string.IsNullOrEmpty(DefaultValue))
+		private static bool InputString(string Prompt, string Comment, bool DefaultValue)
 		{
-			Console.Write("(Accept default value by pressing ENTER: ");
-			Console.ForegroundColor = ConsoleColor.Yellow;
-			Console.Write(DefaultValue);
+			while (true)
+			{
+				string s = InputString(Prompt, Comment, DefaultValue.ToString());
+				if (CommonTypes.TryParse(s, out bool Result))
+					return Result;
+
+				Log.Error("Input must be a Boolean value.");
+			}
+		}
+
+		private static string InputString(string Prompt, string DefaultValue)
+		{
+			return InputString(Prompt, string.Empty, DefaultValue);
+		}
+
+		private static string InputString(string Prompt, string Comment, string DefaultValue)
+		{
 			Console.ForegroundColor = ConsoleColor.White;
-			Console.WriteLine(")");
-		}
-		else if (!string.IsNullOrEmpty(Comment))
-		{
-			Console.Write("(");
-			Console.Write(Comment);
-			Console.WriteLine(")");
-		}
+			Console.Out.Write(Prompt);
+			Console.Out.WriteLine(":");
 
-		Console.Write("> ");
-		Console.ForegroundColor = ConsoleColor.Yellow;
-
-		string? s;
-
-		if (RunningInsideContainer())
-			s = DefaultValue;
-		else
-		{
-			s = Console.In.ReadLine();
-			if (string.IsNullOrEmpty(s))
-				s = DefaultValue;
-		}
-
-		Console.ForegroundColor = ConsoleColor.White;
-
-		return s;
-	}
-
-	#endregion
-
-	#region vCard contact information for device
-
-	// XEP-0054 - vcard-temp: http://xmpp.org/extensions/xep-0054.html
-
-	private static void RegisterVCard()
-	{
-		xmppClient?.RegisterIqGetHandler("vCard", "vcard-temp", (sender, e) =>
-		{
-			e.IqResult(GetVCardXml());
-			return Task.CompletedTask;
-		}, true);
-
-		Log.Informational("Setting vCard");
-		xmppClient?.SendIqSet(string.Empty, GetVCardXml(), (sender, e) =>
-		{
-			if (e.Ok)
-				Log.Informational("vCard successfully set.");
-			else
-				Log.Error("Unable to set vCard.");
-
-			return Task.CompletedTask;
-
-		}, null);
-	}
-
-	private static string GetVCardXml()
-	{
-		StringBuilder Xml = new();
-
-		Xml.Append("<vCard xmlns='vcard-temp'>");
-		Xml.Append("<FN>HTTP-XMPP Bridge</FN><N><FAMILY>Bridge</FAMILY><GIVEN>HTTP-XMPP</GIVEN><MIDDLE/></N>");
-		Xml.Append("<URL>https://github.com/Neuro-Foundation/IoTBridgeHttp</URL>");
-		Xml.Append("<JABBERID>");
-		Xml.Append(XML.Encode(xmppClient?.BareJID));
-		Xml.Append("</JABBERID>");
-		Xml.Append("<UID>");
-		Xml.Append(deviceId);
-		Xml.Append("</UID>");
-		Xml.Append("<DESC>HTTP-XMPP Bridge Project (IoTBridgeHttp), based on a concentrator example from the book Mastering Internet of Things, by Peter Waher.</DESC>");
-
-		// XEP-0153 - vCard-Based Avatars: http://xmpp.org/extensions/xep-0153.html
-
-		using Stream? fs = typeof(Program).Assembly.GetManifestResourceStream("ConsoleBridge.Assets.Icon.png");
-
-		if (fs is not null)
-		{
-			int Len = (int)fs.Length;
-			byte[] Icon = new byte[Len];
-			fs.Read(Icon, 0, Len);
-
-			Xml.Append("<PHOTO><TYPE>image/png</TYPE><BINVAL>");
-			Xml.Append(Convert.ToBase64String(Icon));
-			Xml.Append("</BINVAL></PHOTO>");
-		}
-
-		Xml.Append("</vCard>");
-
-		return Xml.ToString();
-	}
-
-	#endregion
-
-	#region Device Registration
-
-	private static async Task RegisterDevice()
-	{
-		string Country = await EnvironmentSettings.GetAsync("REGISTRY_COUNTRY", "ThingRegistry.Country", string.Empty);
-		string Region = await EnvironmentSettings.GetAsync("REGISTRY_REGION", "ThingRegistry.Region", string.Empty);
-		string City = await EnvironmentSettings.GetAsync("REGISTRY_CITY", "ThingRegistry.City", string.Empty);
-		string Area = await EnvironmentSettings.GetAsync("REGISTRY_AREA", "ThingRegistry.Area", string.Empty);
-		string Street = await EnvironmentSettings.GetAsync("REGISTRY_SRTEET", "ThingRegistry.Street", string.Empty);
-		string StreetNr = await EnvironmentSettings.GetAsync("REGISTRY_STREETNR", "ThingRegistry.StreetNr", string.Empty);
-		string Building = await EnvironmentSettings.GetAsync("REGISTRY_BUILDING", "ThingRegistry.Building", string.Empty);
-		string Apartment = await EnvironmentSettings.GetAsync("REGISTRY_APARTMENT", "ThingRegistry.Apartment", string.Empty);
-		string Room = await EnvironmentSettings.GetAsync("REGISTRY_ROOM", "ThingRegistry.Room", string.Empty);
-		string Name = await EnvironmentSettings.GetAsync("REGISTRY_NAME", "ThingRegistry.Name", string.Empty);
-		bool HasLocation = await EnvironmentSettings.GetAsync("REGISTRY_LOCATION", "ThingRegistry.Location", false);
-		bool Updated = false;
-
-		while (true)
-		{
-			if (HasLocation)
+			if (!string.IsNullOrEmpty(DefaultValue))
 			{
-				try
+				Console.Write("(Accept default value by pressing ENTER: ");
+				Console.ForegroundColor = ConsoleColor.Yellow;
+				Console.Write(DefaultValue);
+				Console.ForegroundColor = ConsoleColor.White;
+				Console.WriteLine(")");
+			}
+			else if (!string.IsNullOrEmpty(Comment))
+			{
+				Console.Write("(");
+				Console.Write(Comment);
+				Console.WriteLine(")");
+			}
+
+			Console.Write("> ");
+			Console.ForegroundColor = ConsoleColor.Yellow;
+
+			string? s;
+
+			if (RunningInsideContainer())
+				s = DefaultValue;
+			else
+			{
+				s = Console.In.ReadLine();
+				if (string.IsNullOrEmpty(s))
+					s = DefaultValue;
+			}
+
+			Console.ForegroundColor = ConsoleColor.White;
+
+			return s;
+		}
+
+		#endregion
+
+		#region vCard contact information for device
+
+		// XEP-0054 - vcard-temp: http://xmpp.org/extensions/xep-0054.html
+
+		private static void RegisterVCard()
+		{
+			xmppClient?.RegisterIqGetHandler("vCard", "vcard-temp", (sender, e) =>
+			{
+				e.IqResult(GetVCardXml());
+				return Task.CompletedTask;
+			}, true);
+
+			Log.Informational("Setting vCard");
+			xmppClient?.SendIqSet(string.Empty, GetVCardXml(), (sender, e) =>
+			{
+				if (e.Ok)
+					Log.Informational("vCard successfully set.");
+				else
+					Log.Error("Unable to set vCard.");
+
+				return Task.CompletedTask;
+
+			}, null);
+		}
+
+		private static string GetVCardXml()
+		{
+			StringBuilder Xml = new();
+
+			Xml.Append("<vCard xmlns='vcard-temp'>");
+			Xml.Append("<FN>HTTP-XMPP Bridge</FN><N><FAMILY>Bridge</FAMILY><GIVEN>HTTP-XMPP</GIVEN><MIDDLE/></N>");
+			Xml.Append("<URL>https://github.com/Neuro-Foundation/IoTBridgeHttp</URL>");
+			Xml.Append("<JABBERID>");
+			Xml.Append(XML.Encode(xmppClient?.BareJID));
+			Xml.Append("</JABBERID>");
+			Xml.Append("<UID>");
+			Xml.Append(deviceId);
+			Xml.Append("</UID>");
+			Xml.Append("<DESC>HTTP-XMPP Bridge Project (IoTBridgeHttp), based on a concentrator example from the book Mastering Internet of Things, by Peter Waher.</DESC>");
+
+			// XEP-0153 - vCard-Based Avatars: http://xmpp.org/extensions/xep-0153.html
+
+			using Stream? fs = typeof(Program).Assembly.GetManifestResourceStream("ConsoleBridge.Assets.Icon.png");
+
+			if (fs is not null)
+			{
+				int Len = (int)fs.Length;
+				byte[] Icon = new byte[Len];
+				fs.Read(Icon, 0, Len);
+
+				Xml.Append("<PHOTO><TYPE>image/png</TYPE><BINVAL>");
+				Xml.Append(Convert.ToBase64String(Icon));
+				Xml.Append("</BINVAL></PHOTO>");
+			}
+
+			Xml.Append("</vCard>");
+
+			return Xml.ToString();
+		}
+
+		#endregion
+
+		#region Device Registration
+
+		private static async Task RegisterDevice()
+		{
+			string Country = await EnvironmentSettings.GetAsync("REGISTRY_COUNTRY", "ThingRegistry.Country", string.Empty);
+			string Region = await EnvironmentSettings.GetAsync("REGISTRY_REGION", "ThingRegistry.Region", string.Empty);
+			string City = await EnvironmentSettings.GetAsync("REGISTRY_CITY", "ThingRegistry.City", string.Empty);
+			string Area = await EnvironmentSettings.GetAsync("REGISTRY_AREA", "ThingRegistry.Area", string.Empty);
+			string Street = await EnvironmentSettings.GetAsync("REGISTRY_SRTEET", "ThingRegistry.Street", string.Empty);
+			string StreetNr = await EnvironmentSettings.GetAsync("REGISTRY_STREETNR", "ThingRegistry.StreetNr", string.Empty);
+			string Building = await EnvironmentSettings.GetAsync("REGISTRY_BUILDING", "ThingRegistry.Building", string.Empty);
+			string Apartment = await EnvironmentSettings.GetAsync("REGISTRY_APARTMENT", "ThingRegistry.Apartment", string.Empty);
+			string Room = await EnvironmentSettings.GetAsync("REGISTRY_ROOM", "ThingRegistry.Room", string.Empty);
+			string Name = await EnvironmentSettings.GetAsync("REGISTRY_NAME", "ThingRegistry.Name", string.Empty);
+			bool HasLocation = await EnvironmentSettings.GetAsync("REGISTRY_LOCATION", "ThingRegistry.Location", false);
+			bool Updated = false;
+
+			while (true)
+			{
+				if (HasLocation)
 				{
-					List<MetaDataTag> MetaInfo =
-						[
-							new MetaDataStringTag("CLASS", "Bridge"),
+					try
+					{
+						List<MetaDataTag> MetaInfo =
+							[
+								new MetaDataStringTag("CLASS", "Bridge"),
 							new MetaDataStringTag("TYPE", "HTTP->XMPP"),
 							new MetaDataStringTag("MAN", "neuro-foundation.io"),
 							new MetaDataStringTag("MODEL", "IoTBridgeHttp"),
 							new MetaDataStringTag("PURL", "https://github.com/Neuro-Foundation/IoTBridgeHttp"),
 							new MetaDataStringTag("SN", deviceId),
 							new MetaDataNumericTag("V", 1.0)
-						];
+							];
 
-					if (!string.IsNullOrEmpty(Country))
-						MetaInfo.Add(new MetaDataStringTag("COUNTRY", Country));
+						if (!string.IsNullOrEmpty(Country))
+							MetaInfo.Add(new MetaDataStringTag("COUNTRY", Country));
 
-					if (!string.IsNullOrEmpty(Region))
-						MetaInfo.Add(new MetaDataStringTag("REGION", Region));
+						if (!string.IsNullOrEmpty(Region))
+							MetaInfo.Add(new MetaDataStringTag("REGION", Region));
 
-					if (!string.IsNullOrEmpty(City))
-						MetaInfo.Add(new MetaDataStringTag("CITY", City));
+						if (!string.IsNullOrEmpty(City))
+							MetaInfo.Add(new MetaDataStringTag("CITY", City));
 
-					if (!string.IsNullOrEmpty(Area))
-						MetaInfo.Add(new MetaDataStringTag("AREA", Area));
+						if (!string.IsNullOrEmpty(Area))
+							MetaInfo.Add(new MetaDataStringTag("AREA", Area));
 
-					if (!string.IsNullOrEmpty(Street))
-						MetaInfo.Add(new MetaDataStringTag("STREET", Street));
+						if (!string.IsNullOrEmpty(Street))
+							MetaInfo.Add(new MetaDataStringTag("STREET", Street));
 
-					if (!string.IsNullOrEmpty(StreetNr))
-						MetaInfo.Add(new MetaDataStringTag("STREETNR", StreetNr));
+						if (!string.IsNullOrEmpty(StreetNr))
+							MetaInfo.Add(new MetaDataStringTag("STREETNR", StreetNr));
 
-					if (!string.IsNullOrEmpty(Building))
-						MetaInfo.Add(new MetaDataStringTag("BLD", Building));
+						if (!string.IsNullOrEmpty(Building))
+							MetaInfo.Add(new MetaDataStringTag("BLD", Building));
 
-					if (!string.IsNullOrEmpty(Apartment))
-						MetaInfo.Add(new MetaDataStringTag("APT", Apartment));
+						if (!string.IsNullOrEmpty(Apartment))
+							MetaInfo.Add(new MetaDataStringTag("APT", Apartment));
 
-					if (!string.IsNullOrEmpty(Room))
-						MetaInfo.Add(new MetaDataStringTag("ROOM", Room));
+						if (!string.IsNullOrEmpty(Room))
+							MetaInfo.Add(new MetaDataStringTag("ROOM", Room));
 
-					if (!string.IsNullOrEmpty(Name))
-						MetaInfo.Add(new MetaDataStringTag("NAME", Name));
+						if (!string.IsNullOrEmpty(Name))
+							MetaInfo.Add(new MetaDataStringTag("NAME", Name));
 
-					if (string.IsNullOrEmpty(ownerJid))
-						await RegisterDevice([.. MetaInfo]);
-					else
-						await UpdateRegistration([.. MetaInfo], ownerJid);
+						if (string.IsNullOrEmpty(ownerJid))
+							await RegisterDevice([.. MetaInfo]);
+						else
+							await UpdateRegistration([.. MetaInfo], ownerJid);
 
-					if (Updated)
-					{
-						await RuntimeSettings.SetAsync("ThingRegistry.Country", Country);
-						await RuntimeSettings.SetAsync("ThingRegistry.Region", Region);
-						await RuntimeSettings.SetAsync("ThingRegistry.City", City);
-						await RuntimeSettings.SetAsync("ThingRegistry.Area", Area);
-						await RuntimeSettings.SetAsync("ThingRegistry.Street", Street);
-						await RuntimeSettings.SetAsync("ThingRegistry.StreetNr", StreetNr);
-						await RuntimeSettings.SetAsync("ThingRegistry.Building", Building);
-						await RuntimeSettings.SetAsync("ThingRegistry.Apartment", Apartment);
-						await RuntimeSettings.SetAsync("ThingRegistry.Room", Room);
-						await RuntimeSettings.SetAsync("ThingRegistry.Name", Name);
+						if (Updated)
+						{
+							await RuntimeSettings.SetAsync("ThingRegistry.Country", Country);
+							await RuntimeSettings.SetAsync("ThingRegistry.Region", Region);
+							await RuntimeSettings.SetAsync("ThingRegistry.City", City);
+							await RuntimeSettings.SetAsync("ThingRegistry.Area", Area);
+							await RuntimeSettings.SetAsync("ThingRegistry.Street", Street);
+							await RuntimeSettings.SetAsync("ThingRegistry.StreetNr", StreetNr);
+							await RuntimeSettings.SetAsync("ThingRegistry.Building", Building);
+							await RuntimeSettings.SetAsync("ThingRegistry.Apartment", Apartment);
+							await RuntimeSettings.SetAsync("ThingRegistry.Room", Room);
+							await RuntimeSettings.SetAsync("ThingRegistry.Name", Name);
+						}
+						break;
 					}
-					break;
+					catch (Exception ex)
+					{
+						Log.Exception(ex);
+					}
 				}
-				catch (Exception ex)
+
+				if (RunningInsideContainer())
 				{
-					Log.Exception(ex);
+					Log.Error("Location information not provided. Cannot continue.");
+					return;
 				}
+
+				Country = InputString("Country", Country);
+				Region = InputString("Region", Region);
+				City = InputString("City", City);
+				Area = InputString("Area", Area);
+				Street = InputString("Street", Street);
+				StreetNr = InputString("StreetNr", StreetNr);
+				Building = InputString("Building", Building);
+				Apartment = InputString("Apartment", Apartment);
+				Room = InputString("Room", Room);
+				Name = InputString("Name", Name);
+				Updated = true;
+				HasLocation = true;
 			}
-
-			if (RunningInsideContainer())
-			{
-				Log.Error("Location information not provided. Cannot continue.");
-				return;
-			}
-
-			Country = InputString("Country", Country);
-			Region = InputString("Region", Region);
-			City = InputString("City", City);
-			Area = InputString("Area", Area);
-			Street = InputString("Street", Street);
-			StreetNr = InputString("StreetNr", StreetNr);
-			Building = InputString("Building", Building);
-			Apartment = InputString("Apartment", Apartment);
-			Room = InputString("Room", Room);
-			Name = InputString("Name", Name);
-			Updated = true;
-			HasLocation = true;
-		}
-	}
-
-	private static async Task RegisterDevice(MetaDataTag[] MetaInfo)
-	{
-		Log.Informational("Registering device.");
-
-		string Key = await RuntimeSettings.GetAsync("ThingRegistry.Key", string.Empty);
-		if (string.IsNullOrEmpty(Key))
-		{
-			using RandomNumberGenerator Rnd = RandomNumberGenerator.Create();
-			byte[] Bin = new byte[32];
-
-			Rnd.GetBytes(Bin);
-
-			Key = Hashes.BinaryToString(Bin);
-			await RuntimeSettings.SetAsync("ThingRegistry.Key", Key);
 		}
 
-		int c = MetaInfo.Length;
-		MetaDataTag[] MetaInfo2 = new MetaDataTag[c + 1];
-		Array.Copy(MetaInfo, 0, MetaInfo2, 0, c);
-		MetaInfo2[c] = new MetaDataStringTag("KEY", Key);
-
-		registryClient?.RegisterThing(false, MetaInfo2, async (sender, e) =>
+		private static async Task RegisterDevice(MetaDataTag[] MetaInfo)
 		{
-			try
+			Log.Informational("Registering device.");
+
+			string Key = await RuntimeSettings.GetAsync("ThingRegistry.Key", string.Empty);
+			if (string.IsNullOrEmpty(Key))
 			{
-				if (e.Ok)
-				{
-					await RuntimeSettings.SetAsync("ThingRegistry.Location", true);
-					await RuntimeSettings.SetAsync("ThingRegistry.Owner", ownerJid = e.OwnerJid);
+				using RandomNumberGenerator Rnd = RandomNumberGenerator.Create();
+				byte[] Bin = new byte[32];
 
-					if (string.IsNullOrEmpty(e.OwnerJid))
-						Log.Informational("Registration successful.");
-					else
-					{
-						await RuntimeSettings.SetAsync("ThingRegistry.Key", string.Empty);
-						Log.Informational("Registration updated. Device has an owner.",
-							new KeyValuePair<string, object>("Owner", e.OwnerJid));
+				Rnd.GetBytes(Bin);
 
-						MetaInfo2[c] = new MetaDataStringTag("JID", xmppClient?.BareJID);
-					}
-
-					if (xmppClient is not null)
-						await GenerateIoTDiscoUri(MetaInfo2, xmppClient.Host);
-				}
-				else
-				{
-					Log.Error("Registration failed.");
-					await RegisterDevice();
-				}
+				Key = Hashes.BinaryToString(Bin);
+				await RuntimeSettings.SetAsync("ThingRegistry.Key", Key);
 			}
-			catch (Exception ex)
-			{
-				Log.Exception(ex);
-			}
-		}, null);
-	}
 
-	private static async Task GenerateIoTDiscoUri(MetaDataTag[] MetaInfo, string Host)
-	{
-		if (registryClient is null || qrEncoder is null)
-			return;
+			int c = MetaInfo.Length;
+			MetaDataTag[] MetaInfo2 = new MetaDataTag[c + 1];
+			Array.Copy(MetaInfo, 0, MetaInfo2, 0, c);
+			MetaInfo2[c] = new MetaDataStringTag("KEY", Key);
 
-		string FilePath = Path.Combine(appDataFolder, "Bridge.iotdisco");
-		string DiscoUri = registryClient.EncodeAsIoTDiscoURI(MetaInfo);
-		QrMatrix M = qrEncoder.GenerateMatrix(CorrectionLevel.L, DiscoUri);
-		string QrCode = M.ToQuarterBlockText();
-
-		Log.Informational(QrCode);
-		File.WriteAllText(FilePath, DiscoUri);
-
-		StringBuilder sb = new();
-
-		sb.AppendLine("[InternetShortcut]");
-		sb.Append("URL=https://");
-		sb.Append(Host);
-		sb.Append("/QR/");
-		sb.Append(HttpUtility.UrlEncode(DiscoUri));
-		sb.AppendLine();
-
-		string ShortcutFileName = FilePath + ".url";
-		File.WriteAllText(ShortcutFileName, sb.ToString());
-
-		byte[] Rgba = M.ToRGBA(400, 400);
-
-		using SKData Data = SKData.Create(new MemoryStream(Rgba));
-		using SKImage Bitmap = SKImage.FromPixels(new SKImageInfo(400, 400, SKColorType.Rgba8888), Data, 400 * 4);
-		using SKData Data2 = Bitmap.Encode(SKEncodedImageFormat.Png, 100);
-		byte[] Png = Data2.ToArray();
-
-		string PngFileName = FilePath + ".png";
-		await File.WriteAllBytesAsync(PngFileName, Png);
-
-		Log.Informational("IoTDisco URI saved.",
-			new KeyValuePair<string, object>("URI Filename", FilePath),
-			new KeyValuePair<string, object>("Shortcut Filename", ShortcutFileName),
-			new KeyValuePair<string, object>("QR Code Filename", PngFileName));
-	}
-
-	private static async Task UpdateRegistration(MetaDataTag[] MetaInfo, string OwnerJid)
-	{
-		if (string.IsNullOrEmpty(OwnerJid))
-			await RegisterDevice(MetaInfo);
-		else
-		{
-			Log.Informational("Updating registration of device.",
-				new KeyValuePair<string, object>("Owner", OwnerJid));
-
-			registryClient?.UpdateThing(MetaInfo, async (sender, e) =>
+			registryClient?.RegisterThing(false, MetaInfo2, async (sender, e) =>
 			{
 				try
 				{
-					if (e.Disowned)
+					if (e.Ok)
 					{
-						await RuntimeSettings.SetAsync("ThingRegistry.Owner", ownerJid = string.Empty);
-						await RegisterDevice(MetaInfo);
-					}
-					else if (e.Ok)
-					{
-						Log.Informational("Registration update successful.");
+						await RuntimeSettings.SetAsync("ThingRegistry.Location", true);
+						await RuntimeSettings.SetAsync("ThingRegistry.Owner", ownerJid = e.OwnerJid);
 
-						int c = MetaInfo.Length;
-						MetaDataTag[] MetaInfo2 = new MetaDataTag[c + 1];
-						Array.Copy(MetaInfo, 0, MetaInfo2, 0, c);
-						MetaInfo2[c] = new MetaDataStringTag("JID", xmppClient?.BareJID);
+						if (string.IsNullOrEmpty(e.OwnerJid))
+							Log.Informational("Registration successful.");
+						else
+						{
+							await RuntimeSettings.SetAsync("ThingRegistry.Key", string.Empty);
+							Log.Informational("Registration updated. Device has an owner.",
+								new KeyValuePair<string, object>("Owner", e.OwnerJid));
+
+							MetaInfo2[c] = new MetaDataStringTag("JID", xmppClient?.BareJID);
+						}
 
 						if (xmppClient is not null)
 							await GenerateIoTDiscoUri(MetaInfo2, xmppClient.Host);
 					}
 					else
 					{
-						Log.Error("Registration update failed.");
-						await RegisterDevice(MetaInfo);
+						Log.Error("Registration failed.");
+						await RegisterDevice();
 					}
 				}
 				catch (Exception ex)
@@ -1163,48 +1164,133 @@ internal class Program
 				}
 			}, null);
 		}
-	}
 
-	private static void Reregister()
-	{
-		Task _ = Task.Run(async () =>
+		private static async Task GenerateIoTDiscoUri(MetaDataTag[] MetaInfo, string Host)
 		{
-			try
+			if (registryClient is null || qrEncoder is null)
+				return;
+
+			string FilePath = Path.Combine(appDataFolder, "Bridge.iotdisco");
+			string DiscoUri = registryClient.EncodeAsIoTDiscoURI(MetaInfo);
+			QrMatrix M = qrEncoder.GenerateMatrix(CorrectionLevel.L, DiscoUri);
+			string QrCode = M.ToQuarterBlockText();
+
+			Log.Informational(QrCode);
+			File.WriteAllText(FilePath, DiscoUri);
+
+			StringBuilder sb = new();
+
+			sb.AppendLine("[InternetShortcut]");
+			sb.Append("URL=https://");
+			sb.Append(Host);
+			sb.Append("/QR/");
+			sb.Append(HttpUtility.UrlEncode(DiscoUri));
+			sb.AppendLine();
+
+			string ShortcutFileName = FilePath + ".url";
+			File.WriteAllText(ShortcutFileName, sb.ToString());
+
+			byte[] Rgba = M.ToRGBA(400, 400);
+
+			using SKData Data = SKData.Create(new MemoryStream(Rgba));
+			using SKImage Bitmap = SKImage.FromPixels(new SKImageInfo(400, 400, SKColorType.Rgba8888), Data, 400 * 4);
+			using SKData Data2 = Bitmap.Encode(SKEncodedImageFormat.Png, 100);
+			byte[] Png = Data2.ToArray();
+
+			string PngFileName = FilePath + ".png";
+			await File.WriteAllBytesAsync(PngFileName, Png);
+
+			Log.Informational("IoTDisco URI saved.",
+				new KeyValuePair<string, object>("URI Filename", FilePath),
+				new KeyValuePair<string, object>("Shortcut Filename", ShortcutFileName),
+				new KeyValuePair<string, object>("QR Code Filename", PngFileName));
+		}
+
+		private static async Task UpdateRegistration(MetaDataTag[] MetaInfo, string OwnerJid)
+		{
+			if (string.IsNullOrEmpty(OwnerJid))
+				await RegisterDevice(MetaInfo);
+			else
 			{
-				await Task.Delay(5000);
-				await RegisterDevice();
+				Log.Informational("Updating registration of device.",
+					new KeyValuePair<string, object>("Owner", OwnerJid));
+
+				registryClient?.UpdateThing(MetaInfo, async (sender, e) =>
+				{
+					try
+					{
+						if (e.Disowned)
+						{
+							await RuntimeSettings.SetAsync("ThingRegistry.Owner", ownerJid = string.Empty);
+							await RegisterDevice(MetaInfo);
+						}
+						else if (e.Ok)
+						{
+							Log.Informational("Registration update successful.");
+
+							int c = MetaInfo.Length;
+							MetaDataTag[] MetaInfo2 = new MetaDataTag[c + 1];
+							Array.Copy(MetaInfo, 0, MetaInfo2, 0, c);
+							MetaInfo2[c] = new MetaDataStringTag("JID", xmppClient?.BareJID);
+
+							if (xmppClient is not null)
+								await GenerateIoTDiscoUri(MetaInfo2, xmppClient.Host);
+						}
+						else
+						{
+							Log.Error("Registration update failed.");
+							await RegisterDevice(MetaInfo);
+						}
+					}
+					catch (Exception ex)
+					{
+						Log.Exception(ex);
+					}
+				}, null);
 			}
-			catch (Exception ex)
+		}
+
+		private static void Reregister()
+		{
+			Task _ = Task.Run(async () =>
 			{
-				Log.Exception(ex);
-			}
-		});
+				try
+				{
+					await Task.Delay(5000);
+					await RegisterDevice();
+				}
+				catch (Exception ex)
+				{
+					Log.Exception(ex);
+				}
+			});
+		}
+
+		#endregion
+
+		#region Concentrator
+
+		private static async Task SetupConcentratorServer()
+		{
+			SafeDispose(ref concentratorServer);
+
+			concentratorServer = await ConcentratorServer.Create(xmppClient, registryClient,
+				provisioningClient, new MeteringTopology());
+		}
+
+		#endregion
+
+		#region Chat Server
+
+		private static void SetupChatServer()
+		{
+			SafeDispose(ref chatServer);
+
+			bobClient ??= new BobClient(xmppClient, Path.Combine(Path.GetTempPath(), "BitsOfBinary"));
+			chatServer = new Waher.Networking.XMPP.Chat.ChatServer(xmppClient, bobClient, concentratorServer);
+		}
+
+		#endregion
+
 	}
-
-	#endregion
-
-	#region Concentrator
-
-	private static async Task SetupConcentratorServer()
-	{
-		SafeDispose(ref concentratorServer);
-
-		concentratorServer = await ConcentratorServer.Create(xmppClient, registryClient, 
-			provisioningClient, new MeteringTopology());
-	}
-
-	#endregion
-
-	#region Chat Server
-
-	private static void SetupChatServer()
-	{
-		SafeDispose(ref chatServer);
-
-		bobClient ??= new BobClient(xmppClient, Path.Combine(Path.GetTempPath(), "BitsOfBinary"));
-		chatServer = new Waher.Networking.XMPP.Chat.ChatServer(xmppClient, bobClient, concentratorServer);
-	}
-
-	#endregion
-
 }

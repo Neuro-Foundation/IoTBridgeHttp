@@ -11,12 +11,47 @@
   <ItemGroup>
     <None Remove="Assets\Icon.png" />
     <None Remove="ConsoleBridge.manifest" />
+    <None Remove="Root\Admin\Role.md" />
+    <None Remove="Root\Admin\Roles.js" />
+    <None Remove="Root\Admin\Roles.md" />
+    <None Remove="Root\Admin\Roles.ws" />
+    <None Remove="Root\Admin\User.md" />
+    <None Remove="Root\Admin\Users.js" />
+    <None Remove="Root\Admin\Users.md" />
+    <None Remove="Root\Admin\Users.ws" />
     <None Remove="Root\favicon.ico" />
+    <None Remove="Root\Login.js" />
+    <None Remove="Root\Login.md" />
     <None Remove="Root\Master.md" />
+    <None Remove="Root\Sha3.js" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="ConsoleBridge.manifest">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\Admin\Role.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\Admin\Roles.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\Admin\Roles.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\Admin\Roles.ws">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\Admin\User.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\Admin\Users.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\Admin\Users.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\Admin\Users.ws">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Root\favicon.ico">
@@ -25,10 +60,25 @@
     <Content Include="Root\Index.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Root\Logout.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\Login.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\Login.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\Master.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Root\Master.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Root\Master.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Root\Sha3.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -64,6 +114,7 @@
     <PackageReference Include="Waher.Runtime.Console" Version="1.2.0" />
     <PackageReference Include="Waher.Runtime.Settings" Version="1.2.1" />
     <PackageReference Include="Waher.Script" Version="2.13.9" />
+    <PackageReference Include="Waher.Script.Persistence" Version="2.13.0" />
     <PackageReference Include="Waher.Security" Version="1.2.0" />
     <PackageReference Include="Waher.Things" Version="3.3.1" />
     <PackageReference Include="Waher.Things.Http" Version="1.0.1" />

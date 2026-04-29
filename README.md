@@ -47,6 +47,8 @@ to input the value on the console.
 | `X509_PASSWORD`           | String  | Password to X.509 certificate.                                                                                        |
 | `HTTP_PORT`               | Integer | Port number to use for unencrypted HTTP. (default is `80`)                                                            |
 | `HTTPS_PORT`              | Integer | Port number to use for encrypted HTTPS. (default is `443`)                                                            |
+| `ADMIN_NAME`              | String  | Administrator User name.                                                                                              |
+| `ADMIN_PASSWORD`          | String  | Administrator Password.                                                                                               |
 | `USER_COUNT`              | Integer | Number of users to create. (Default is `0`, which will trigger manual input of users.)                                |
 | `USER_N_NAME`             | String  | User name for user `N`. (where `N` is a number between `1` and `USERS_COUNT`)                                         |
 | `USER_N_PASSWORD`         | String  | Password for user `N`. (where `N` is a number between `1` and `USERS_COUNT`)                                          |

@@ -95,6 +95,14 @@ ARG HTTPS_PORT
 ENV HTTPS_PORT="443"
 LABEL env.HTTPS_PORT="Port number to use for encrypted HTTPS."
 
+ARG ADMIN_NAME
+ENV ADMIN_NAME=""
+LABEL env.ADMIN_NAME="Administrator User name."
+
+ARG ADMIN_PASSWORD
+ENV ADMIN_PASSWORD=""
+LABEL env.ADMIN_PASSWORD="Administrator Password."
+
 ARG USER_COUNT
 ENV USER_COUNT="0"
 LABEL env.USER_COUNT="Number of users to create. (Default is 0, which will trigger manual input of users.)"
@@ -350,7 +358,9 @@ COPY [ \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Runtime.Threading.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Runtime.Timing.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Script.dll", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Script.Content.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Script.Graphs.dll", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Script.Persistence.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Security.CallStack.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Security.ChaChaPoly.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Security.dll", \
@@ -374,16 +384,48 @@ COPY [ \
 COPY [ \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/favicon.ico", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Index.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Login.js", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Login.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Logout.md", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Master.css", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Master.js", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Master.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Sha3.js", \
 	"/var/lib/IoT Gateway/Root/"]
 
 COPY [ \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/favicon.ico", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Index.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Login.js", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Login.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Logout.md", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Master.css", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Master.js", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Master.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Sha3.js", \
 	"/opt/IoTGateway/Root/"]
+
+COPY [ \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Admin/Role.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Admin/Roles.js", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Admin/Roles.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Admin/Roles.ws", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Admin/User.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Admin/Users.js", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Admin/Users.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Admin/Users.ws", \
+	"/var/lib/IoT Gateway/Root/Admin/"]
+
+COPY [ \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Admin/Role.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Admin/Roles.js", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Admin/Roles.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Admin/Roles.ws", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Admin/User.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Admin/Users.js", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Admin/Users.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Admin/Users.ws", \
+	"/opt/IoTGateway/Root/Admin/"]
 
 RUN ["cp", "-ru", "/var/lib/IoT Gateway/.", "/var/lib/IoT Gateway"]
 
