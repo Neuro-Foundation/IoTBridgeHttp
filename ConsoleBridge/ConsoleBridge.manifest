@@ -258,6 +258,7 @@
 	<Folder name="Root">
 		<Content fileName="favicon.ico"/>
 		<Content fileName="Index.md"/>
+		<Content fileName="Master.css"/>
 		<Content fileName="Master.md"/>
 	</Folder>
 	<From image="mcr.microsoft.com/dotnet/runtime-deps:8.0"/>

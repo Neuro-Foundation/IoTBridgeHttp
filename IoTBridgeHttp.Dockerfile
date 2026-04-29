@@ -374,12 +374,14 @@ COPY [ \
 COPY [ \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/favicon.ico", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Index.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Master.css", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Master.md", \
 	"/var/lib/IoT Gateway/Root/"]
 
 COPY [ \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/favicon.ico", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Index.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Master.css", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Master.md", \
 	"/opt/IoTGateway/Root/"]
 
