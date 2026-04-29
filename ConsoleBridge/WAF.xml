@@ -1,0 +1,18 @@
+﻿<Root xmlns="http://waher.se/Schema/WAF.xsd">
+	<ResourceMatch mode="StartsWithConstant" value="/Admin/">
+		<FromIp value="127.0.0.1">
+			<Allow/>
+		</FromIp>
+		<FromIp value="10.0.0.0/8">
+			<Allow/>
+		</FromIp>
+		<FromIp value="172.16.0.0/12">
+			<Allow/>
+		</FromIp>
+		<FromIp value="192.168.0.0/16">
+			<Allow/>
+		</FromIp>
+		<Forbid/>
+	</ResourceMatch>
+	<Allow/>
+</Root>

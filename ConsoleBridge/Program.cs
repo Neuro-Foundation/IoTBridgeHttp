@@ -39,7 +39,7 @@ using Waher.Script.Persistence.SQL;
 using Waher.Security;
 using Waher.Security.JWT;
 using Waher.Security.LoginMonitor;
-using Waher.Security.SHA3;
+using Waher.Security.WAF;
 using Waher.Security.Users;
 using Waher.Things;
 using Waher.Things.Http;
@@ -74,6 +74,7 @@ namespace ConsoleBridge
 		private static X509Certificate? certificate = null;
 		private static LoginAuditor? loginAuditor = null;
 		private static IPersistentDictionary? nonceValues = null;
+		private static WebApplicationFirewall? waf = null;
 
 		private static async Task Main()
 		{
@@ -112,6 +113,7 @@ namespace ConsoleBridge
 					typeof(XmppBrokerNode).GetTypeInfo().Assembly,
 					typeof(Hashes).GetTypeInfo().Assembly,
 					typeof(Users).GetTypeInfo().Assembly,
+					typeof(WebApplicationFirewall).GetTypeInfo().Assembly,
 					typeof(Program).GetTypeInfo().Assembly);
 
 				#endregion
@@ -391,7 +393,10 @@ namespace ConsoleBridge
 
 				#region Local Web Server
 
-				string RootFolder = Path.Combine(Environment.CurrentDirectory, "Root");
+				string AppDataFolder = Environment.CurrentDirectory;
+				Types.SetModuleParameter("AppData", AppDataFolder);
+
+				string RootFolder = Path.Combine(AppDataFolder, "Root");
 				Types.SetModuleParameter("Root", RootFolder);
 
 				long HttpPort = await EnvironmentSettings.GetAsync("HTTP_PORT", "HttpPort", -1);
@@ -677,6 +682,13 @@ namespace ConsoleBridge
 
 				#endregion
 
+				#region Web Application Firewall
+
+				waf = WebApplicationFirewall.LoadFromFile("WAF.xml", loginAuditor, AppDataFolder);
+				httpServer.WebApplicationFirewall = waf;
+
+				#endregion
+
 				#region Configuring Decision Support & Provisioning
 
 				thingRegistryJid = await RuntimeSettings.GetAsync("ThingRegistry.JID", string.Empty);
@@ -814,6 +826,7 @@ namespace ConsoleBridge
 				SafeDispose(ref scheduler);
 				SafeDispose(ref jwtFactory);
 				SafeDispose(ref loginAuditor);
+				SafeDispose(ref waf);
 
 				await Log.TerminateAsync();
 

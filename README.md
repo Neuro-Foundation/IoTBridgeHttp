@@ -211,3 +211,29 @@ Web Page
 The root resource `/` makes a temporary redirection to `/Index.md`, which is the landing page
 for the bridge. It contains basic information about the bridge, as well as a login-mechanism
 to access the setup of the bridge. Once logged in, you can manually edit roles and users.
+
+### Security
+
+The HTTP bridge supports multiple levels of security:
+
+*	Access to things published on the federated network is protected by provisioning.
+	When the gateway starts, it generates an `iotdisco` URI, which can be used to claim ownership 
+	of the device. Once claimed, the owner receives notifications when someone wants to access the 
+	device, and can decide whether to allow access or not.
+
+*	The bridge supports a set of users and roles, each defining a set of privileges. During
+	first start, the initial users and roles are configured. This can be done either using
+	environment variables, or by providing input on the console. An administrator user is created,
+	which will have all privileges. Once the bridge is up and running, the administrator can login
+	and configure existing users and roles, and create new ones.
+
+*	A Web-Application Firewall (WAF) is included in the bridge. The administrator can configure
+	the WAF to block or allow access to specific resources, based on application-level rules. This
+	can be used to restrict access to certain pages (such as the administrative pages) to certain
+	IPs, for instance, or rate-limit access to certain resources, such as sensor-data publication
+	resrouces.
+	
+	The Web-Application Firewall is defined in the `WAF.xml` file. It is an XML file that needs
+	to validate against the [`https://waher.se/Schema/WAF.xsd` namespace](https://waher.se/Schema/WAF.xsd).
+	The default version restricts access to the administration pages to local area network IP
+	addresses.

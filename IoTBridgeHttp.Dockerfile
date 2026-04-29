@@ -371,6 +371,7 @@ COPY [ \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Security.PQC.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Security.SHA3.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Security.Users.dll", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Security.WAF.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Things.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Things.Http.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Things.Ip.dll", \

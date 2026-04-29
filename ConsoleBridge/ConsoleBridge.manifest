@@ -257,6 +257,7 @@
 	<Assembly fileName="Waher.Things.Virtual.dll"/>
 	<Assembly fileName="Waher.Things.Xmpp.dll"/>
 	<Assembly fileName="WindowsBase.dll"/>
+	<Assembly fileName="WAF.xml"/>
 	<Folder name="Root">
 		<Content fileName="favicon.ico"/>
 		<Content fileName="Index.md"/>
