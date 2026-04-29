@@ -12,7 +12,7 @@
 		<FromIp value="192.168.0.0/16">
 			<Allow/>
 		</FromIp>
-		<Forbid/>
+		<TemporaryRedirection location="/LanOnly.md"/>
 	</ResourceMatch>
 	<Allow/>
 </Root>
