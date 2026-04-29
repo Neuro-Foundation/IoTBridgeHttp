@@ -4,11 +4,6 @@ Date: 2021-01-27
 Author: Peter Waher
 Master: /Master.md
 JavaScript: Users.js
-JavaScript: /Settings/Next.js
-JavaScript: /TargetBlank.js
-JavaScript: /Events.js
-CSS: /Settings/Config.cssx
-Cache-Control: max-age=0, no-cache, no-store
 UserVariable: User
 Privilege: Admin.Security.Users
 Login: /Login.md

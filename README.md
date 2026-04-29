@@ -204,3 +204,10 @@ in the login process.
 The Root folder resource `/`. If no specific resource above is referenced, the default is to
 look for a file resource in the `Root` folder, and return it if found. This allows you to
 host custom web content on the bridge.
+
+Web Page
+-----------
+
+The root resource `/` makes a temporary redirection to `/Index.md`, which is the landing page
+for the bridge. It contains basic information about the bridge, as well as a login-mechanism
+to access the setup of the bridge. Once logged in, you can manually edit roles and users.

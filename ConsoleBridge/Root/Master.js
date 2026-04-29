@@ -58,3 +58,8 @@ function OpenUrl(Url)
 {
 	window.location.href = Url;
 }
+
+function ReloadPage()
+{
+	window.location.replace(window.location.href);
+}

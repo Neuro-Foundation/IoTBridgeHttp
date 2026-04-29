@@ -1,14 +1,9 @@
 ﻿Title: Roles
 Description: Displays available roles
-Date: 2021-01-27
+Date: 2026-04-29
 Author: Peter Waher
 Master: /Master.md
 JavaScript: Roles.js
-JavaScript: /Settings/Next.js
-JavaScript: /TargetBlank.js
-JavaScript: /Events.js
-CSS: /Settings/Config.cssx
-Cache-Control: max-age=0, no-cache, no-store
 UserVariable: User
 Privilege: Admin.Security.Roles
 Login: /Login.md

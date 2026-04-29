@@ -571,6 +571,17 @@ namespace ConsoleBridge
 					AdminCreated = true;
 				}
 
+				if (await Database.FindFirstIgnoreRest<Role>(new FilterFieldEqualTo("Id", "AnySensor")) is null)
+				{
+					Role = new()
+					{
+						Id = "AnySensor",
+						Privileges = [new PrivilegePattern("Admin\\.SensorData\\.Post(\\..*)?", true)]
+					};
+
+					await Database.Insert(Role);
+				}
+
 				#endregion
 
 				#region Users
