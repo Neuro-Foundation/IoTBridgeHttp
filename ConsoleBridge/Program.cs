@@ -47,6 +47,7 @@ using Waher.Things.Ip;
 using Waher.Things.Metering;
 using Waher.Things.Virtual;
 using Waher.Things.Xmpp;
+using Waher.Runtime.Counters;
 
 namespace ConsoleBridge
 {
@@ -93,6 +94,7 @@ namespace ConsoleBridge
 					typeof(FilesProvider).GetTypeInfo().Assembly,
 					typeof(ObjectSerializer).GetTypeInfo().Assembly,
 					typeof(RuntimeSettings).GetTypeInfo().Assembly,
+					typeof(RuntimeCounters).GetTypeInfo().Assembly,
 					typeof(XmppClient).GetTypeInfo().Assembly,
 					typeof(InternetContent).GetTypeInfo().Assembly,
 					typeof(MarkdownDocument).GetTypeInfo().Assembly,

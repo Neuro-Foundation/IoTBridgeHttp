@@ -346,6 +346,7 @@ COPY [ \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Runtime.Cache.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Runtime.Collections.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Runtime.Console.dll", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Runtime.Counters.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Runtime.Geo.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Runtime.Inventory.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Runtime.IO.dll", \
@@ -371,7 +372,6 @@ COPY [ \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Security.PQC.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Security.SHA3.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Security.Users.dll", \
-	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Security.WAF.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Things.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Things.Http.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Things.Ip.dll", \
@@ -380,11 +380,13 @@ COPY [ \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Things.Virtual.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Things.Xmpp.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/WindowsBase.dll", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/WAF.xml", \
 	"/opt/IoTGateway/"]
 
 COPY [ \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/favicon.ico", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Index.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/LanOnly.md", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Login.js", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Login.md", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Logout.md", \
@@ -397,6 +399,7 @@ COPY [ \
 COPY [ \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/favicon.ico", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Index.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/LanOnly.md", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Login.js", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Login.md", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Logout.md", \

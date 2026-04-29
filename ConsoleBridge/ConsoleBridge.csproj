@@ -30,6 +30,9 @@
     <Content Include="ConsoleBridge.manifest">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Root\LanOnly.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="WAF.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -118,6 +121,7 @@
     <PackageReference Include="Waher.Persistence.Files" Version="1.20.0" />
     <PackageReference Include="Waher.Runtime.Cache" Version="2.2.1" />
     <PackageReference Include="Waher.Runtime.Console" Version="1.2.0" />
+    <PackageReference Include="Waher.Runtime.Counters" Version="2.0.0" />
     <PackageReference Include="Waher.Runtime.Settings" Version="1.2.1" />
     <PackageReference Include="Waher.Script" Version="2.13.9" />
     <PackageReference Include="Waher.Script.Persistence" Version="2.13.0" />

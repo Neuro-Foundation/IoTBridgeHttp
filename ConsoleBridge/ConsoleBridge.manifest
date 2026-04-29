@@ -224,6 +224,7 @@
 	<Assembly fileName="Waher.Runtime.Cache.dll"/>
 	<Assembly fileName="Waher.Runtime.Collections.dll"/>
 	<Assembly fileName="Waher.Runtime.Console.dll"/>
+	<Assembly fileName="Waher.Runtime.Counters.dll"/>
 	<Assembly fileName="Waher.Runtime.Geo.dll"/>
 	<Assembly fileName="Waher.Runtime.Inventory.dll"/>
 	<Assembly fileName="Waher.Runtime.IO.dll"/>
@@ -261,6 +262,7 @@
 	<Folder name="Root">
 		<Content fileName="favicon.ico"/>
 		<Content fileName="Index.md"/>
+		<Content fileName="LanOnly.md"/>
 		<Content fileName="Login.js"/>
 		<Content fileName="Login.md"/>
 		<Content fileName="Logout.md"/>
