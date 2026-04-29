@@ -6,8 +6,11 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Web;
 using Waher.Content;
+using Waher.Content.Html;
 using Waher.Content.Html.Elements;
 using Waher.Content.Markdown;
+using Waher.Content.Markdown.Web;
+using Waher.Content.Markdown.Web.WebScript;
 using Waher.Content.QR;
 using Waher.Content.QR.Encoding;
 using Waher.Content.Xml;
@@ -25,7 +28,9 @@ using Waher.Networking.XMPP.ServiceDiscovery;
 using Waher.Persistence;
 using Waher.Persistence.Files;
 using Waher.Persistence.Serialization;
+using Waher.Runtime.Console;
 using Waher.Runtime.Inventory;
+using Waher.Runtime.Queue;
 using Waher.Runtime.Settings;
 using Waher.Runtime.Timing;
 using Waher.Script;
@@ -78,13 +83,16 @@ internal class Program
 			Log.Informational("Starting application.");
 
 			Types.Initialize(
+				typeof(Log).GetTypeInfo().Assembly,
 				typeof(Database).GetTypeInfo().Assembly,
 				typeof(FilesProvider).GetTypeInfo().Assembly,
-				typeof(ObjectSerializer).GetTypeInfo().Assembly,    // Waher.Persistence.Serialization was broken out of Waher.Persistence.FilesLW after the publishing of the MIoT book.
+				typeof(ObjectSerializer).GetTypeInfo().Assembly,
 				typeof(RuntimeSettings).GetTypeInfo().Assembly,
-				typeof(IContentEncoder).GetTypeInfo().Assembly,
 				typeof(XmppClient).GetTypeInfo().Assembly,
+				typeof(InternetContent).GetTypeInfo().Assembly,
 				typeof(MarkdownDocument).GetTypeInfo().Assembly,
+				typeof(MarkdownToHtmlConverter).GetTypeInfo().Assembly,
+				typeof(HtmlDocument).GetTypeInfo().Assembly,
 				typeof(XML).GetTypeInfo().Assembly,
 				typeof(Expression).GetTypeInfo().Assembly,
 				typeof(Graph).GetTypeInfo().Assembly,
@@ -489,6 +497,16 @@ internal class Program
 
 			await Types.StartAllModules(60000);     // HttpModule requires the Web Server to be active
 			await HttpModule.CheckLocalWebServerNode();
+
+			// Protecting Markdown resources:
+			if (!MarkdownCodec.IsRawEncodingAllowedLocked)
+				MarkdownCodec.AllowRawEncoding(false, true);
+			HttpFolderResource.ProtectContentType(MarkdownCodec.ContentType);
+
+			// Protecting web-script resources:
+			if (!WsCodec.IsRawEncodingAllowedLocked)
+				WsCodec.AllowRawEncoding(false, true);
+			HttpFolderResource.ProtectContentType(WsCodec.ContentType);
 
 			#endregion
 

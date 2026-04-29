@@ -307,6 +307,7 @@ COPY [ \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Content.Html.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Content.Images.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Content.Markdown.dll", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Content.Markdown.Web.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Content.QR.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Content.Xml.dll", \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Waher.Content.Xsl.dll", \
@@ -372,10 +373,14 @@ COPY [ \
 
 COPY [ \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/favicon.ico", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Index.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Master.md", \
 	"/var/lib/IoT Gateway/Root/"]
 
 COPY [ \
 	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/favicon.ico", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Index.md", \
+	"ConsoleBridge/bin/Release/PublishOutputLinux/linux-x64/Root/Master.md", \
 	"/opt/IoTGateway/Root/"]
 
 RUN ["cp", "-ru", "/var/lib/IoT Gateway/.", "/var/lib/IoT Gateway"]

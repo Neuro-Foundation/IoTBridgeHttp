@@ -193,6 +193,7 @@
 	<Assembly fileName="Waher.Content.Html.dll"/>
 	<Assembly fileName="Waher.Content.Images.dll"/>
 	<Assembly fileName="Waher.Content.Markdown.dll"/>
+	<Assembly fileName="Waher.Content.Markdown.Web.dll"/>
 	<Assembly fileName="Waher.Content.QR.dll"/>
 	<Assembly fileName="Waher.Content.Xml.dll"/>
 	<Assembly fileName="Waher.Content.Xsl.dll"/>
@@ -256,6 +257,8 @@
 	<Assembly fileName="WindowsBase.dll"/>
 	<Folder name="Root">
 		<Content fileName="favicon.ico"/>
+		<Content fileName="Index.md"/>
+		<Content fileName="Master.md"/>
 	</Folder>
 	<From image="mcr.microsoft.com/dotnet/runtime-deps:8.0"/>
 	<Volume path="/var/lib/IoT Gateway"/>
