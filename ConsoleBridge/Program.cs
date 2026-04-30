@@ -364,7 +364,10 @@ namespace ConsoleBridge
 				}
 
 				if (certificate is null)
+				{
 					domain = deviceId;
+					Types.SetModuleParameter("Realm", domain);
+				}
 				else
 				{
 					Types.SetModuleParameter("X509", certificate);
