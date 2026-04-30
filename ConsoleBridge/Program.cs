@@ -48,6 +48,7 @@ using Waher.Things.Metering;
 using Waher.Things.Virtual;
 using Waher.Things.Xmpp;
 using Waher.Runtime.Counters;
+using Waher.Things.SensorData;
 
 namespace ConsoleBridge
 {
@@ -1305,6 +1306,13 @@ namespace ConsoleBridge
 
 			concentratorServer = await ConcentratorServer.Create(xmppClient, registryClient,
 				provisioningClient, new MeteringTopology());
+
+			MeteringTopology.OnNewMomentaryValues += OnNewMomentaryValues;
+		}
+
+		private static Task OnNewMomentaryValues(IThingReference Reference, IEnumerable<Field> Values)
+		{
+			return concentratorServer?.SensorServer?.NewMomentaryValues(Reference, Values) ?? Task.CompletedTask;
 		}
 
 		#endregion
