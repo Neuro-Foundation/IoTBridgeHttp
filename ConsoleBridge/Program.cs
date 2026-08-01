@@ -49,6 +49,7 @@ using Waher.Things.Virtual;
 using Waher.Things.Xmpp;
 using Waher.Runtime.Counters;
 using Waher.Things.SensorData;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ConsoleBridge
 {
@@ -320,7 +321,7 @@ namespace ConsoleBridge
 
 				Bin = Encoding.UTF8.GetBytes(JwtFactorySecret);
 
-				jwtFactory = JwtFactory.CreateHmacSha256(Bin);
+				jwtFactory = JwtFactory.CreateHmacSha256(Bin, deviceId);
 				Types.SetModuleParameter("JWT", jwtFactory);
 
 				#endregion
@@ -499,14 +500,22 @@ namespace ConsoleBridge
 											break;
 
 										case LoginResultType.Success:
-											Message = "Login successful.";
-											Ok = true;
-											await nonceValues.AddAsync(Nonce, true);
+											if (Result.User is IUserWithClaims UserWithClaims)
+											{
+												Message = "Login successful.";
+												Ok = true;
+												await nonceValues.AddAsync(Nonce, true);
 
-											Jwt = await Result.User.CreateToken(jwtFactory, req.Encrypted);
+												Jwt = await UserWithClaims.CreateToken(jwtFactory, req.Encrypted);
 
-											if (req.Session is not null)
-												req.Session["User"] = Result.User;
+												if (req.Session is not null)
+													req.Session["User"] = Result.User;
+											}
+											else
+											{
+												Message = "Invalid user.";
+												break;
+											}
 											break;
 
 										default:
